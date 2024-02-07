@@ -57,7 +57,7 @@ export const settings = definePluginSettings({
         type: OptionType.BOOLEAN,
         description: "Attempt to move you to the channel when is not full anymore",
         restartNeeded: false,
-        default: true
+        default: false
     }
 });
 
