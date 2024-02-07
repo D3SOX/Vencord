@@ -14,7 +14,7 @@ import definePlugin, { OptionType } from "@utils/types";
 import { filters, find, findByPropsLazy, findStoreLazy } from "@webpack";
 import { ChannelStore, Menu, PermissionsBits, PermissionStore, React, SelectedChannelStore, Toasts, UserStore } from "@webpack/common";
 import { VoiceState } from "@webpack/types";
-import { Channel, User } from "discord-types/general";
+import type { Channel, User } from "discord-types/general";
 
 const HeaderBarIcon = LazyComponent(() => {
     const filter = filters.byCode(".HEADER_BAR_BADGE");
@@ -75,9 +75,7 @@ interface VoiceStateStore {
 }
 
 interface VoiceStateEntry {
-    [guildIdOrMe: string]: {
-        [userId: string]: VoiceState;
-    };
+    [guildIdOrMe: string]: VoiceStateMember;
 }
 
 interface VoiceStateMember {
