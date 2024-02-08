@@ -61,6 +61,7 @@ export const settings = definePluginSettings({
     }
 });
 
+let userChannelIdCached;
 const ChannelActions: {
     disconnect: () => void;
     selectVoiceChannel: (channelId: string) => void;
@@ -109,6 +110,7 @@ function triggerFollow(userChannelId: string | null = getChannelId(settings.stor
                 if (PermissionStore.can(CONNECT, channel)) {
                     if (channel.userLimit !== 0 && memberCount && memberCount >= channel.userLimit && !PermissionStore.can(PermissionsBits.MOVE_MEMBERS, channel)) {
                         if (settings.store.channelFull) {
+                            userChannelIdCached = userChannelId;
                             setTimeout(() => {
                                 triggerFollow(userChannelId, true);
                             }, 5000);
@@ -121,6 +123,17 @@ function triggerFollow(userChannelId: string | null = getChannelId(settings.stor
                             });
                         }
                         return;
+                    } else {
+                        userChannelIdCached = null;
+                    }
+                    if (retry) {
+                        if (!userChannelIdCached) {
+                            return;
+                        }
+                        if (userChannelId !== userChannelIdCached) {
+                            userChannelIdCached = null;
+                            return triggerFollow();
+                        }
                     }
                     ChannelActions.selectVoiceChannel(userChannelId);
                     Toasts.show({
