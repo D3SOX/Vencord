@@ -8,6 +8,14 @@
     height: unset;
 }
 
+.vc-uvs-button-view {
+    width: 32px;
+    min-width: 32px;
+    height: unset;
+    margin: unset;
+    padding: unset;
+}
+
 .vc-uvs-header {
     color: var(--header-primary);
     margin-bottom: 6px;
@@ -24,4 +32,15 @@
 .vc-uvs-popout-margin-self>[class^="section"] {
     padding-top: 0;
     padding-bottom: 12px;
+}
+
+.vc-uvs-private-channel:has(>div) {
+    margin: 1rem;
+    padding: 12px;
+    background-color: var(--profile-body-background-color);
+    border-radius: 8px;
+}
+
+.vc-uvs-private-channel>div {
+    padding: 0;
 }
