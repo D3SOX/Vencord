@@ -1,35 +1,20 @@
 # Vencord (D3SOX)
 
+A fork of [Vencord](https://github.com/Vendicated/Vencord).
+
+This is the branch of Vencord I personally run on my machine.
+
 ### Extra features compared to [Vendicated/Vencord](https://github.com/Vendicated/Vencord) main:
 - [All my userplugins](https://github.com/D3SOX/vencord-userplugins) preinstalled (currently 9 plugins!)
 - YouTubeDescription plugin ([#2427](https://github.com/Vendicated/Vencord/pull/2427))
 - UserVoiceShow plugin enhanced ([#1669](https://github.com/Vendicated/Vencord/pull/1669) and [#2248](https://github.com/Vendicated/Vencord/pull/2248))
 - NoModalAnimation plugin ([AutumnVM userplugins](https://github.com/AutumnVN/userplugins/))
 
-The cutest Discord client mod
-
-| ![image](https://github.com/Vendicated/Vencord/assets/45497981/706722b1-32de-4d99-bee9-93993b504334) |
-| :--------------------------------------------------------------------------------------------------: |
-|   A screenshot of vencord showcasing the [vencord-theme](https://github.com/synqat/vencord-theme)    |
-
-## Features
-
--   Super easy to install (Download Installer, open, click install button, done)
--   100+ plugins built in: [See a list](https://vencord.dev/plugins)
-    -   Some highlights: SpotifyControls, MessageLogger, Experiments, GameActivityToggle, Translate, NoTrack, QuickReply, Free Emotes/Stickers, PermissionsViewer, CustomCommands, ShowHiddenChannels, PronounDB
--   Fairly lightweight despite the many inbuilt plugins
--   Excellent Browser Support: Run Vencord in your Browser via extension or UserScript
--   Works on any Discord branch: Stable, Canary or PTB all work (though for the best experience I recommend stable!)
--   Custom CSS and Themes: Inbuilt css editor with support to import any css files (including BetterDiscord themes)
--   Privacy friendly, blocks Discord analytics & crash reporting out of the box and has no telemetry
--   Maintained very actively, broken plugins are usually fixed within 12 hours
--   Settings sync: Keep your plugins and their settings synchronised between devices / apps (optional)
-
-
 ## Installing / Uninstalling
 
-Visit [1_INSTALLING.md](/docs/1_INSTALLING.md)
+The only supported methods of installing are manual and selecting the build files in [Vesktop](https://github.com/Vencord/Vesktop) for now.
 
+For the manual installation visit [1_INSTALLING.md](/docs/1_INSTALLING.md)
 
 ## Star History
 
