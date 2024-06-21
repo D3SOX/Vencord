@@ -1,6 +1,7 @@
 # Vencord (D3SOX)
 
 ### Extra features compared to [Vendicated/Vencord](https://github.com/Vendicated/Vencord) main:
+- [All my userplugins](https://github.com/D3SOX/vencord-userplugins) preinstalled (currently 9 plugins!)
 - YouTubeDescription plugin ([#2427](https://github.com/Vendicated/Vencord/pull/2427))
 - UserVoiceShow plugin enhanced ([#1669](https://github.com/Vendicated/Vencord/pull/1669) and [#2248](https://github.com/Vendicated/Vencord/pull/2248))
 - NoModalAnimation plugin ([AutumnVM userplugins](https://github.com/AutumnVN/userplugins/))
