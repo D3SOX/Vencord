@@ -1,7 +1,3 @@
-> [!WARNING]
-> These instructions are only for advanced users. If you're not a Developer, you should use our [graphical installer](https://github.com/Vendicated/VencordInstaller#usage) instead.
-> No support will be provided for installing in this fashion. If you cannot figure it out, you should just stick to a regular install.
-
 # Installation Guide
 
 Welcome to Megu's Installation Guide! In this file, you will learn about how to download, install, and uninstall Vencord!
@@ -35,7 +31,7 @@ npm i -g pnpm
 Clone Vencord:
 
 ```shell
-git clone https://github.com/Vendicated/Vencord
+git clone https://github.com/D3SOX/Vencord
 cd Vencord
 ```
 
