@@ -12,9 +12,9 @@ This is the branch of Vencord I personally run on my machine.
 
 ## Installing / Uninstalling
 
-The only supported methods of installing are manual and selecting the build files in [Vesktop](https://github.com/Vencord/Vesktop) for now.
+Only a manual installation is supported for now. You can also use it with [Vesktop](https://github.com/Vencord/Vesktop) by selecting the build files in the settings instead of injecting it into the official Discord.
 
-For the manual installation visit [1_INSTALLING.md](/docs/1_INSTALLING.md)
+Visit [1_INSTALLING.md](/docs/1_INSTALLING.md)
 
 ## Star History
 
