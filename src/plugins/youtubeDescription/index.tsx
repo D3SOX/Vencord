@@ -4,18 +4,29 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { definePluginSettings } from "@api/Settings";
+import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import { isNonNullish } from "@utils/guards";
-import definePlugin from "@utils/types";
+import definePlugin, { OptionType } from "@utils/types";
 import { useState } from "@webpack/common";
 import { Embed } from "discord-types/general";
 
 interface ToggleableDescriptionProps { embed: Embed, original: () => any; }
 
+const settings = definePluginSettings({
+    defaultState: {
+        type: OptionType.BOOLEAN,
+        default: false,
+        description: "Show full description by default",
+    }
+});
+
 export default definePlugin({
     name: "YoutubeDescription",
     description: "Adds descriptions to youtube video embeds",
     authors: [Devs.arHSM],
+    settings,
     patches: [
         {
             find: ".Messages.SUPPRESS_ALL_EMBEDS",
@@ -25,10 +36,8 @@ export default definePlugin({
             }
         }
     ],
-    ToggleableDescription({ embed, original }: ToggleableDescriptionProps) {
-        const [isOpen, setOpen] = useState(false);
-
-        console.warn(embed);
+    ToggleableDescription: ErrorBoundary.wrap(({ embed, original }: ToggleableDescriptionProps) => {
+        const [isOpen, setOpen] = useState(settings.store.defaultState);
 
         return !isNonNullish(embed.rawDescription)
             ? null
@@ -42,7 +51,7 @@ export default definePlugin({
                         : embed.rawDescription.substring(0, 20) + "..."}
                 </div>
                 : original();
-    },
+    }),
     ToggleableDescriptionWrapper(props: ToggleableDescriptionProps) {
         return <this.ToggleableDescription {...props}></this.ToggleableDescription>;
     }
