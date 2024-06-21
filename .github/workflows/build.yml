@@ -2,7 +2,7 @@ name: Build DevBuild
 on:
     push:
         branches:
-            - main
+            - mybuild
         paths:
             - .github/workflows/build.yml
             - src/**
@@ -50,7 +50,7 @@ jobs:
                   echo "release_tag=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
             - name: Upload DevBuild as release
-              if: github.repository == 'Vendicated/Vencord'
+              if: github.repository == 'D3SOX/Vencord'
               run: |
                   gh release upload devbuild --clobber dist/*
                   gh release edit devbuild --title "DevBuild $RELEASE_TAG"
