@@ -13,9 +13,9 @@ export default definePlugin({
     authors: [Devs.arHSM],
     patches: [
         {
-            find: ".default.Messages.SUPPRESS_ALL_EMBEDS",
+            find: ".Messages.SUPPRESS_ALL_EMBEDS",
             replacement: {
-                match: /case \i\.MessageEmbedTypes\.VIDEO:(case \i\.MessageEmbedTypes\.\i:)*break;default:(\i=this\.renderDescription\(\))\}/,
+                match: /case \i\.\i\.VIDEO:(case \i\.\i\.\i:)*break;default:(\i=this\.renderDescription\(\))\}/,
                 replace: "$1 break; default: $2 }"
             }
         }
