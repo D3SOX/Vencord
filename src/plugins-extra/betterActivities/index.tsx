@@ -41,7 +41,6 @@ const settings = definePluginSettings({
     },
     iconSize: {
         type: OptionType.SLIDER,
-        disabled:  () => !settings.store.memberList,
         description: "Size of the activity icons",
         markers: [10, 15, 20],
         default: 15,
@@ -49,14 +48,12 @@ const settings = definePluginSettings({
     },
     specialFirst: {
         type: OptionType.BOOLEAN,
-        disabled:  () => !settings.store.memberList,
         description: "Show special activities first (Currently Spotify and Twitch)",
         default: true,
         restartNeeded: false,
     },
     renderGifs: {
         type: OptionType.BOOLEAN,
-        disabled:  () => !settings.store.memberList,
         description: "Allow rendering GIFs",
         default: true,
         restartNeeded: false,
@@ -88,7 +85,6 @@ const settings = definePluginSettings({
     },
     allActivitiesStyle: {
         type: OptionType.SELECT,
-        disabled:  () => !settings.store.profileSidebar && !settings.store.userPopout,
         description: "Style for showing all activities",
         options: [
             {
@@ -135,7 +131,6 @@ const DefaultActivityIcon = findComponentByCodeLazy("M6,7 L2,7 L2,6 L6,6 L6,7 Z 
 const fetchedApplications = new Map<string, Application | null>();
 
 const xboxUrl = "https://discord.com/assets/9a15d086141be29d9fcd.png"; // TODO: replace with "renderXboxImage"?
-const playStationUrl = "https://discord.com/assets/9a92495b7c404a37bbfc.svg"; // TODO: replace with "renderPlayStationImage"?
 
 function getActivityImage(activity: Activity, application?: Application): string | undefined {
     if (activity.type === 2 && activity.name === "Spotify") {
@@ -189,7 +184,7 @@ const ActivityTooltip = ({ activity, application, user }: Readonly<{ activity: A
         if (activityImage) {
             return activityImage;
         }
-        const icon = getApplicationIcons([activity], user, true)[0];
+        const icon = getApplicationIcons([activity], true)[0];
         return icon?.image.src;
     }, [activity]);
     const timestamps = useMemo(() => getValidTimestamps(activity), [activity]);
@@ -218,7 +213,7 @@ const ActivityTooltip = ({ activity, application, user }: Readonly<{ activity: A
     );
 };
 
-function getApplicationIcons(activities: Activity[], user: User, preferSmall = false) {
+function getApplicationIcons(activities: Activity[], preferSmall = false) {
     const applicationIcons: ApplicationIcon[] = [];
     const applications = activities.filter(activity => activity.application_id || activity.platform);
 
@@ -228,15 +223,6 @@ function getApplicationIcons(activities: Activity[], user: User, preferSmall = f
             continue;
         }
 
-        if (platform && platform !== "xbox") {
-            console.log("1THE PLATFORM IS", platform, activity, user);
-            if (platform === "ps5") {
-                applicationIcons.push({
-                    image: { src: playStationUrl, alt: "PlayStation" },
-                    activity,
-                });
-            }
-        }
         if (assets) {
 
             const addImage = (image: string, alt: string) => {
@@ -301,8 +287,6 @@ function getApplicationIcons(activities: Activity[], user: User, preferSmall = f
                         activity,
                         application
                     });
-                } else if (platform === "ps4" || platform === "ps5") {
-                    console.log("2THE PLATFORM IS", platform);
                 }
             }
         } else {
@@ -311,8 +295,6 @@ function getApplicationIcons(activities: Activity[], user: User, preferSmall = f
                     image: { src: xboxUrl, alt: "Xbox" },
                     activity
                 });
-            } else if (!applicationIcons.length) {
-                console.log("3THE PLATFORM IS", platform);
             }
         }
     }
@@ -337,7 +319,7 @@ export default definePlugin({
     patchActivityList: ({ activities, user }: { activities: Activity[], user: User; }): JSX.Element | null => {
         const icons: ActivityListIcon[] = [];
 
-        const applicationIcons = getApplicationIcons(activities, user);
+        const applicationIcons = getApplicationIcons(activities);
         if (applicationIcons.length) {
             const compareImageSource = (a: ApplicationIcon, b: ApplicationIcon) => {
                 return a.image.src === b.image.src;
