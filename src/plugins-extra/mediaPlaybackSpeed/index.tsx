@@ -6,26 +6,63 @@
 
 import "./styles.css";
 
+import { definePluginSettings } from "@api/Settings";
 import { classNameFactory } from "@api/Styles";
 import ErrorBoundary from "@components/ErrorBoundary";
 import { makeRange } from "@components/PluginSettings/components";
 import { Devs } from "@utils/constants";
-import definePlugin from "@utils/types";
-import { ContextMenuApi, FluxDispatcher, Menu, React, Tooltip } from "@webpack/common";
+import definePlugin, { OptionType } from "@utils/types";
+import { ContextMenuApi, FluxDispatcher, Heading, Menu, React, Tooltip, useEffect } from "@webpack/common";
 import { RefObject } from "react";
 
 import SpeedIcon from "./components/SpeedIcon";
 
 const cl = classNameFactory("vc-media-playback-speed-");
 
-const speeds = makeRange(0.25, 3.5, 0.25);
+const min = 0.25;
+const max = 3.5;
+const speeds = makeRange(min, max, 0.25);
+
+const settings = definePluginSettings({
+    test: {
+        type: OptionType.COMPONENT,
+        description: "",
+        component() {
+            return <Heading variant="heading-lg/bold" selectable={false}>
+                Default playback speeds
+            </Heading>;
+        }
+    },
+    defaultVoiceMessageSpeed: {
+        type: OptionType.SLIDER,
+        default: 1,
+        description: "Voice messages",
+        markers: speeds,
+    },
+    defaultVideoSpeed: {
+        type: OptionType.SLIDER,
+        default: 1,
+        description: "Videos",
+        markers: speeds,
+    },
+    defaultAudioSpeed: {
+        type: OptionType.SLIDER,
+        default: 1,
+        description: "Audios",
+        markers: speeds,
+    },
+});
+
+type MediaRef = RefObject<HTMLMediaElement> | undefined;
 
 export default definePlugin({
     name: "MediaPlaybackSpeed",
-    description: "Adds an icon to change the playback speed of media embeds",
+    description: "Allows changing the (default) playback speed of media embeds",
     authors: [Devs.D3SOX],
 
-    playbackSpeedComponent(mediaRef: RefObject<HTMLMediaElement> | undefined) {
+    settings,
+
+    PlaybackSpeedComponent({ mediaRef }: { mediaRef: MediaRef }) {
         const changeSpeed = (speed: number) => {
             const media = mediaRef?.current;
             if (media) {
@@ -33,41 +70,66 @@ export default definePlugin({
             }
         };
 
+        const changeDefaultSpeed = (media: HTMLMediaElement, speed: number) => {
+            if (speed === 1) return;
+            media.addEventListener("canplay", () => {
+                media.playbackRate = speed;
+            });
+        };
+
+        useEffect(() => {
+            if (!mediaRef?.current) return;
+            const media = mediaRef.current;
+            if (media.tagName === "AUDIO") {
+                if (media.currentSrc.includes("voice-message.ogg")) {
+                    changeDefaultSpeed(media, settings.store.defaultVoiceMessageSpeed);
+                } else {
+                    changeDefaultSpeed(media, settings.store.defaultAudioSpeed);
+                }
+            } else if (media.tagName === "VIDEO") {
+                changeDefaultSpeed(media, settings.store.defaultVideoSpeed);
+            }
+        }, [mediaRef]);
+
         return (
-            <ErrorBoundary noop>
-                <Tooltip text="Playback speed">
-                    {tooltipProps => (
-                        <button
-                            {...tooltipProps}
-                            className={cl("icon")}
-                            onClick={e => {
-                                ContextMenuApi.openContextMenu(e, () =>
-                                    <Menu.Menu
-                                        navId="vc-playback-speed"
-                                        onClose={() => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" })}
-                                        aria-label="Playback speed control"
+            <Tooltip text="Playback speed">
+                {tooltipProps => (
+                    <button
+                        {...tooltipProps}
+                        className={cl("icon")}
+                        onClick={e => {
+                            ContextMenuApi.openContextMenu(e, () =>
+                                <Menu.Menu
+                                    navId="vc-playback-speed"
+                                    onClose={() => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" })}
+                                    aria-label="Playback speed control"
+                                >
+                                    <Menu.MenuGroup
+                                        label="Playback speed"
                                     >
-                                        <Menu.MenuGroup
-                                            label="Playback speed"
-                                        >
-                                            {speeds.map(speed => (
-                                                <Menu.MenuItem
-                                                    key={speed}
-                                                    id={"speed-" + speed}
-                                                    label={`${speed}x`}
-                                                    action={() => changeSpeed(speed)}
-                                                />
-                                            ))}
-                                        </Menu.MenuGroup>
-                                    </Menu.Menu>
-                                );
-                            }}>
-                            <SpeedIcon/>
-                        </button>
-                    )}
-                </Tooltip>
-            </ErrorBoundary>
+                                        {speeds.map(speed => (
+                                            <Menu.MenuItem
+                                                key={speed}
+                                                id={"speed-" + speed}
+                                                label={`${speed}x`}
+                                                action={() => changeSpeed(speed)}
+                                            />
+                                        ))}
+                                    </Menu.MenuGroup>
+                                </Menu.Menu>
+                            );
+                        }}>
+                        <SpeedIcon/>
+                    </button>
+                )}
+            </Tooltip>
         );
+    },
+
+    renderComponent(mediaRef: MediaRef) {
+        return <ErrorBoundary noop>
+            <this.PlaybackSpeedComponent mediaRef={mediaRef} />
+        </ErrorBoundary>;
     },
 
     patches: [
@@ -76,7 +138,7 @@ export default definePlugin({
             find: "\"--:--\"",
             replacement: {
                 match: /onVolumeShow:\i,onVolumeHide:\i\}\)(?<=useCallback\(\(\)=>\{let \i=(\i).current;.+?)/,
-                replace: "$&,$self.playbackSpeedComponent($1)"
+                replace: "$&,$self.renderComponent($1)"
             }
         },
         // audio & video embeds
@@ -92,7 +154,7 @@ export default definePlugin({
             find: "AUDIO:\"AUDIO\"",
             replacement: {
                 match: /onVolumeHide:\i,iconClassName:\i.controlIcon,sliderWrapperClassName:\i.volumeSliderWrapper\}\)\}\),/,
-                replace: "$&$self.playbackSpeedComponent(this.props.mediaRef),"
+                replace: "$&$self.renderComponent(this.props.mediaRef),"
             }
         }
     ]
