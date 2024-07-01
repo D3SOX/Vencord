@@ -81,11 +81,8 @@ export default definePlugin({
             if (!mediaRef?.current) return;
             const media = mediaRef.current;
             if (media.tagName === "AUDIO") {
-                if (media.currentSrc.includes("voice-message.ogg")) {
-                    changeDefaultSpeed(media, settings.store.defaultVoiceMessageSpeed);
-                } else {
-                    changeDefaultSpeed(media, settings.store.defaultAudioSpeed);
-                }
+                const isVoiceMessage = media.className.includes("audioElement_");
+                changeDefaultSpeed(media, isVoiceMessage ? settings.store.defaultVoiceMessageSpeed : settings.store.defaultAudioSpeed);
             } else if (media.tagName === "VIDEO") {
                 changeDefaultSpeed(media, settings.store.defaultVideoSpeed);
             }
