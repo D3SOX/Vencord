@@ -26,7 +26,7 @@ Adds a follow option in the user context menu to always be in the same VC as the
 Ignore Discord's new terms of service
 
 ⏩ [**MediaPlaybackSpeed**](./src/plugins-extra/mediaPlaybackSpeed)  
-Adds an icon to change the playback speed of media embeds
+Allows changing the (default) playback speed of media embeds
 
 🔔 [**NotifyUserChanges**](./src/plugins-extra/notifyUserChanges)  
 Adds a notify option in the user context menu to get notified when a user changes voice channels or online status
