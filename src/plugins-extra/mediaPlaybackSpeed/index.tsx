@@ -70,21 +70,14 @@ export default definePlugin({
             }
         };
 
-        const changeDefaultSpeed = (media: HTMLMediaElement, speed: number) => {
-            if (speed === 1) return;
-            media.addEventListener("canplay", () => {
-                media.playbackRate = speed;
-            });
-        };
-
         useEffect(() => {
             if (!mediaRef?.current) return;
             const media = mediaRef.current;
             if (media.tagName === "AUDIO") {
                 const isVoiceMessage = media.className.includes("audioElement_");
-                changeDefaultSpeed(media, isVoiceMessage ? settings.store.defaultVoiceMessageSpeed : settings.store.defaultAudioSpeed);
+                changeSpeed(isVoiceMessage ? settings.store.defaultVoiceMessageSpeed : settings.store.defaultAudioSpeed);
             } else if (media.tagName === "VIDEO") {
-                changeDefaultSpeed(media, settings.store.defaultVideoSpeed);
+                changeSpeed(settings.store.defaultVideoSpeed);
             }
         }, [mediaRef]);
 
