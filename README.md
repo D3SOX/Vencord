@@ -14,16 +14,6 @@ This is the branch of Vencord I personally run on my machine.
 
 Only a manual installation is supported for now. See the [Vencord Installation docs](https://docs.vencord.dev/installing/). Make sure to replace all instances of `Vendicated/Vencord` with `D3SOX/Vencord`.
 
-## Star History
-
-<a href="https://star-history.com/#D3SOX/Vencord&Timeline">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=D3SOX/Vencord&type=Timeline&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=D3SOX/Vencord&type=Timeline" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=D3SOX/Vencord&type=Timeline" />
-  </picture>
-</a>
-
 ## Disclaimer
 
 Discord is trademark of Discord Inc. and solely mentioned for the sake of descriptivity.
