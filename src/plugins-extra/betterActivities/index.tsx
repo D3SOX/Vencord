@@ -58,6 +58,12 @@ const settings = definePluginSettings({
         default: true,
         restartNeeded: false,
     },
+    showAppDescriptions: {
+        type: OptionType.BOOLEAN,
+        description: "Show application descriptions in the activity tooltip",
+        default: true,
+        restartNeeded: false,
+    },
     divider: {
         type: OptionType.COMPONENT,
         description: "",
@@ -194,7 +200,7 @@ const ActivityTooltip = ({ activity, application, user }: Readonly<{ activity: A
                 <div className={cl("activity-details")}>
                     <div>{activity.details}</div>
                     <div>{activity.state}</div>
-                    {application?.description && <div>{application.description}</div>}
+                    {settings.store.showAppDescriptions && application?.description && <div>{application.description}</div>}
                     {!timestamps && startTime &&
                         <div className={cl("activity-time-bar")}>
                             {formatElapsedTime(moment(startTime), moment())}
