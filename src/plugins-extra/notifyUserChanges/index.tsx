@@ -331,7 +331,7 @@ export default definePlugin({
                 if (lastStatuses.has(userId) && lastStatuses.get(userId) !== status) {
                     const user = UserStore.getUser(userId);
                     // @ts-ignore
-                    const name = user.globalName || user.username;
+                    const name = user.globalName || username;
 
                     showNotification({
                         title: shouldBeNative() ? `${name} changed status` : "User status change",
