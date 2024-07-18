@@ -12,13 +12,13 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import { findByPropsLazy, findComponentByCodeLazy, findStoreLazy } from "@webpack";
-import { moment, PresenceStore, React, Tooltip, useMemo, useStateFromStores } from "@webpack/common";
+import { PresenceStore, React, Tooltip, useEffect, useState, useStateFromStores } from "@webpack/common";
 import { User } from "discord-types/general";
 
 import { Caret } from "./components/Caret";
 import { SpotifyIcon } from "./components/SpotifyIcon";
 import { TwitchIcon } from "./components/TwitchIcon";
-import { Activity, ActivityListIcon, Application, ApplicationIcon, IconCSSProperties, Timestamp } from "./types";
+import { Activity, ActivityListIcon, Application, ApplicationIcon, IconCSSProperties } from "./types";
 
 const settings = definePluginSettings({
     memberList: {
@@ -62,7 +62,7 @@ const settings = definePluginSettings({
                 borderTop: "thin solid var(--background-modifier-accent)",
                 paddingTop: 5,
                 paddingBottom: 5
-            }}/>
+            }} />
         ),
     },
     userPopout: {
@@ -98,16 +98,11 @@ const { fetchApplication }: {
     fetchApplication: (id: string) => Promise<Application | null>;
 } = findByPropsLazy("fetchApplication");
 
-const TimeBar = findComponentByCodeLazy<{
-    start: number;
-    end: number;
-    themed: boolean;
-    className: string;
-}>("isSingleLine");
-
 const ActivityView = findComponentByCodeLazy<{
     activity: Activity | null;
     user: User;
+    application?: Application;
+    type?: string;
 }>(",onOpenGameProfileModal:");
 
 // if discord one day decides to change their icon this needs to be updated
@@ -117,82 +112,16 @@ const fetchedApplications = new Map<string, Application | null>();
 
 const xboxUrl = "https://discord.com/assets/9a15d086141be29d9fcd.png"; // TODO: replace with "renderXboxImage"?
 
-function getActivityImage(activity: Activity, application?: Application): string | undefined {
-    if (activity.type === 2 && activity.name === "Spotify") {
-        // get either from large or small image
-        const image = activity.assets?.large_image ?? activity.assets?.small_image;
-        // image needs to replace 'spotify:'
-        if (image?.startsWith("spotify:")) {
-            // spotify cover art is always https://i.scdn.co/image/ID
-            return image.replace("spotify:", "https://i.scdn.co/image/");
-        }
-    }
-    if (activity.type === 1 && activity.name === "Twitch") {
-        const image = activity.assets?.large_image;
-        // image needs to replace 'twitch:'
-        if (image?.startsWith("twitch:")) {
-            // twitch images are always https://static-cdn.jtvnw.net/previews-ttv/live_user_USERNAME-RESOLUTION.jpg
-            return `${image.replace("twitch:", "https://static-cdn.jtvnw.net/previews-ttv/live_user_")}-108x60.jpg`;
-        }
-    }
-    // TODO: we could support other assets here
-}
-
-function getValidTimestamps(activity: Activity): Required<Timestamp> | null {
-    if (activity.timestamps?.start !== undefined && activity.timestamps?.end !== undefined) {
-        return activity.timestamps as Required<Timestamp>;
-    }
-    return null;
-}
-
-function getValidStartTimeStamp(activity: Activity): number | null {
-    if (activity.timestamps?.start !== undefined) {
-        return activity.timestamps.start;
-    }
-    return null;
-}
-
-const customFormat = (momentObj: moment.Moment): string => {
-    const hours = momentObj.hours();
-    const formattedTime = momentObj.format("mm:ss");
-    return hours > 0 ? `${momentObj.format("HH:")}${formattedTime}` : formattedTime;
-};
-
-function formatElapsedTime(startTime: moment.Moment, endTime: moment.Moment): string {
-    const duration = moment.duration(endTime.diff(startTime));
-    return `${customFormat(moment.utc(duration.asMilliseconds()))} elapsed`;
-}
-
 const ActivityTooltip = ({ activity, application, user }: Readonly<{ activity: Activity, application?: Application, user: User; }>) => {
-    const image = useMemo(() => {
-        const activityImage = getActivityImage(activity, application);
-        if (activityImage) {
-            return activityImage;
-        }
-        const icon = getApplicationIcons([activity], true)[0];
-        return icon?.image.src;
-    }, [activity]);
-    const timestamps = useMemo(() => getValidTimestamps(activity), [activity]);
-    const startTime = useMemo(() => getValidStartTimeStamp(activity), [activity]);
-
-    const hasDetails = activity.details ?? activity.state;
     return (
         <ErrorBoundary>
-            <div className={cl("activity")}>
-                {image && <img className={cl("activity-image")} src={image} alt="Activity logo" />}
-                <div className={cl("activity-title")}>{activity.name}</div>
-                {hasDetails && <div className={cl("activity-divider")} />}
-                <div className={cl("activity-details")}>
-                    <div>{activity.details}</div>
-                    <div>{activity.state}</div>
-                    {settings.store.showAppDescriptions && application?.description && <div>{application.description}</div>}
-                    {!timestamps && startTime &&
-                        <div className={cl("activity-time-bar")}>
-                            {formatElapsedTime(moment(startTime), moment())}
-                        </div>
-                    }
-                </div>
-                {timestamps && <TimeBar start={timestamps.start} end={timestamps.end} themed={false} className={cl("activity-time-bar")} />}
+            <div className={cl("activity-tooltip")}>
+                <ActivityView
+                    activity={activity}
+                    user={user}
+                    application={application}
+                    type="BiteSizePopout"
+                />
             </div>
         </ErrorBoundary>
     );
@@ -375,8 +304,8 @@ export default definePlugin({
         return null;
     },
 
-    showAllActivitiesComponent({ activity, user, ...props }: Readonly<{ activity: Activity; user: User; }>) {
-        const [currentActivity, setCurrentActivity] = React.useState<Activity | null>(
+    showAllActivitiesComponent({ activity, user, ...props }: Readonly<{ activity: Activity; user: User; application: Application; type: string; }>) {
+        const [currentActivity, setCurrentActivity] = useState<Activity | null>(
             activity?.type !== 4 ? activity! : null
         );
 
@@ -384,7 +313,7 @@ export default definePlugin({
             [PresenceStore], () => PresenceStore.getActivities(user.id).filter((activity: Activity) => activity.type !== 4)
         ) ?? [];
 
-        React.useEffect(() => {
+        useEffect(() => {
             if (!activities.length) {
                 setCurrentActivity(null);
                 return;
@@ -428,7 +357,7 @@ export default definePlugin({
                                 >
                                     <Caret
                                         disabled={activities.indexOf(currentActivity!) < 1}
-                                        direction="left"/>
+                                        direction="left" />
                                 </span>;
                             }}</Tooltip>
 
@@ -437,7 +366,7 @@ export default definePlugin({
                                     <div
                                         key={"dot--" + index}
                                         onClick={() => setCurrentActivity(activity)}
-                                        className={`dot ${currentActivity === activity ? "selected" : ""}`}/>
+                                        className={`dot ${currentActivity === activity ? "selected" : ""}`} />
                                 ))}
                             </div>
 
@@ -456,7 +385,7 @@ export default definePlugin({
                                 >
                                     <Caret
                                         disabled={activities.indexOf(currentActivity!) >= activities.length - 1}
-                                        direction="right"/>
+                                        direction="right" />
                                 </span>;
                             }}</Tooltip>
                         </div>
