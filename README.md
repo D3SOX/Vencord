@@ -11,6 +11,7 @@ This is the branch of Vencord I personally run on my machine.
 
 ### Extra features compared to [Vendicated/Vencord](https://github.com/Vendicated/Vencord) main:
 - [All my userplugins](https://github.com/D3SOX/vencord-userplugins) preinstalled (currently 9 plugins!)
+- VolumeBooster plugin for Web/Vesktop ([#2730](https://github.com/Vendicated/Vencord/pull/2730))
 - YouTubeDescription plugin ([#2427](https://github.com/Vendicated/Vencord/pull/2427))
 - DefaultStatusForever plugin ([#2636](https://github.com/Vendicated/Vencord/pull/2636))
 - SimplifiedProfileNotes plugin ([#2635](https://github.com/Vendicated/Vencord/pull/2635))
