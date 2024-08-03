@@ -32,9 +32,9 @@ const settings = definePluginSettings({
     },
 });
 // for some godforsaken reason, the volume is ran through this formula before its stored. patching it out does not work.
-const VolumeEncoder = {
-    decode: findByCodeLazy("6+1:"),
-    encode: findByCodeLazy("50+50"),
+const PerceptualVolume = {
+    amplitudeToPerceptual: findByCodeLazy("6+1:"),
+    // perceptualToAmplitude: findByCodeLazy("50-50"),
 };
 interface StreamData{
     audioContext: AudioContext,
@@ -76,23 +76,23 @@ export default definePlugin({
         {
             find: "streamSourceNode",
             // @ts-ignore
-            predicate: () => IS_WEB || IS_VESKTOP,
+            predicate: () => !IS_DISCORD_DESKTOP,
             group: true,
             replacement: [
                 // to pervent the cap of 100
                 {
-                    match: /Math.max.*?\)\)/,
+                    match: /Math\.max.{0,30}\)\)/,
                     replace: "Math.round(arguments[0])"
                 },
                 // to update the volume on user join
                 {
-                    match: /,this.stream.getTracks\(\).length/,
+                    match: /,this\.stream\.getTracks\(\)\.length/,
                     replace: ",this.updateAudioElement()$&"
                 },
                 // to actually patch the volume
                 {
-                    match: /volume=t.*?;/,
-                    replace: "volume=0.00;$self.patchVolume(this);"
+                    match: /\.volume=this\._volume\/100;/,
+                    replace: ".volume=0.00;$self.patchVolume(this);"
                 }
             ]
         },
@@ -129,19 +129,16 @@ export default definePlugin({
         }
     ],
     patchVolume(data: StreamData){
-        // if we don't have any audio to patch, do nothing
         if(data.stream.getAudioTracks().length === 0) return;
-        if(!data.streamSourceNode)
-            data.streamSourceNode = data.audioContext.createMediaStreamSource(data.stream);
-        // only create one per stream
-        if(data.gainNode) {
-            data.gainNode.gain.value = VolumeEncoder.decode(data._volume)/100 * +!data._mute;
-            return;
+
+        data.streamSourceNode ??= data.audioContext.createMediaStreamSource(data.stream);
+
+        if(!data.gainNode){
+            const gain = data.gainNode = data.audioContext.createGain();
+            data.streamSourceNode.connect(gain);
+            gain.connect(data.audioContext.destination);
         }
-        const source = data.streamSourceNode;
-        const gn = data.audioContext.createGain();
-        data.gainNode = gn;
-        source.connect(gn);
-        gn.connect(data.audioContext.destination);
+
+        data.gainNode.gain.value = data._mute ? 0 : PerceptualVolume.amplitudeToPerceptual(data._volume)/100;
     }
 });
