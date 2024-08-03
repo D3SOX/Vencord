@@ -36,7 +36,7 @@ const PerceptualVolume = {
     amplitudeToPerceptual: findByCodeLazy("6+1:"),
     // perceptualToAmplitude: findByCodeLazy("50-50"),
 };
-interface StreamData{
+interface StreamData {
     audioContext: AudioContext,
     audioElement: HTMLAudioElement,
     emitter: any,
@@ -79,7 +79,7 @@ export default definePlugin({
             predicate: () => !IS_DISCORD_DESKTOP,
             group: true,
             replacement: [
-                // to pervent the cap of 100
+                // remove the cap of 100%
                 {
                     match: /Math\.max.{0,30}\)\)/,
                     replace: "Math.round(arguments[0])"
@@ -128,12 +128,12 @@ export default definePlugin({
             ]
         }
     ],
-    patchVolume(data: StreamData){
-        if(data.stream.getAudioTracks().length === 0) return;
+    patchVolume(data: StreamData) {
+        if (data.stream.getAudioTracks().length === 0) return;
 
         data.streamSourceNode ??= data.audioContext.createMediaStreamSource(data.stream);
 
-        if(!data.gainNode){
+        if (!data.gainNode){
             const gain = data.gainNode = data.audioContext.createGain();
             data.streamSourceNode.connect(gain);
             gain.connect(data.audioContext.destination);
