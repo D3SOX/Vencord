@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import "./styles.css";
+
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
 import { findComponentByCodeLazy } from "@webpack";
@@ -17,7 +19,7 @@ import {
     UserProfileStore,
     UserStore
 } from "@webpack/common";
-import { GuildMember } from "discord-types/general";
+import { Guild, GuildMember } from "discord-types/general";
 
 const SummaryItem = findComponentByCodeLazy("borderType", "showBorder", "hideDivider");
 
@@ -99,7 +101,8 @@ export default definePlugin({
     authors: [Devs.D3SOX],
     description: "Adds a copy/paste/reset button to the server profiles editor",
 
-    patchServerProfiles({ guildId }: { guildId: string }) {
+    patchServerProfiles(guild: Guild) {
+        const guildId = guild.id;
         const currentUser = UserStore.getCurrentUser();
         const premiumType = currentUser.premiumType ?? 0;
 
@@ -181,7 +184,7 @@ export default definePlugin({
             }
         };
 
-        return <SummaryItem title="Server Profiles Toolbox" hideDivider={false} forcedDivider>
+            return <SummaryItem title="Server Profiles Toolbox" hideDivider={false} forcedDivider className="vc-server-profiles-toolbox">
             <div style={{ display: "flex", alignItems: "center", flexDirection: "column", gap: "5px" }}>
                 <Text variant="text-md/normal">
                     Use the following buttons to mange the currently selected server
@@ -211,10 +214,10 @@ export default definePlugin({
 
     patches: [
         {
-            find: ".PROFILE_CUSTOMIZATION_GUILD_SELECT_TITLE",
+            find: "PROFILE_CUSTOMIZATION_GUILD_HINT.format",
             replacement: {
-                match: /return\(0(.{10,350})\}\)\}\)\}/,
-                replace: "return [(0$1})}),$self.patchServerProfiles(e)]}"
+                match: /\(0,\i\.jsx\)\(\i\.\i,\{guildId:(\i)\.id,/,
+                replace: "$self.patchServerProfiles($1),$&"
             }
         }
     ],
