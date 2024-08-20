@@ -6,10 +6,11 @@
 
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
-import { findByPropsLazy, findComponentByCodeLazy } from "@webpack";
+import { findComponentByCodeLazy } from "@webpack";
 import {
     Button,
     Clipboard,
+    FluxDispatcher,
     GuildMemberStore,
     Text,
     Toasts,
@@ -42,25 +43,56 @@ const savedProfile: SavedProfile = {
     avatarDecoration: undefined,
 };
 
-const {
-    setPendingAvatar,
-    setPendingBanner,
-    setPendingBio,
-    setPendingNickname,
-    setPendingPronouns,
-    setPendingThemeColors,
-    setPendingProfileEffectId,
-    setPendingAvatarDecoration,
-}: {
-    setPendingAvatar: (a: string | undefined) => void;
-    setPendingBanner: (a: string | undefined) => void;
-    setPendingBio: (a: string | null) => void;
-    setPendingNickname: (a: string | null) => void;
-    setPendingPronouns: (a: string | null) => void;
-    setPendingThemeColors: (a: number[] | undefined) => void;
-    setPendingProfileEffectId: (a: string | undefined) => void;
-    setPendingAvatarDecoration: (a: string | undefined) => void;
-} = findByPropsLazy("setPendingNickname", "setPendingPronouns");
+const IdentityActions = {
+    setPendingAvatar(avatar: string | undefined) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_AVATAR",
+            avatar,
+        });
+    },
+    setPendingBanner(banner: string | undefined) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_BANNER",
+            banner,
+        });
+    },
+    setPendingBio(bio: string | null) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_BIO",
+            bio,
+        });
+    },
+    setPendingNickname(nickname: string | null) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_NICKNAME",
+            nickname,
+        });
+    },
+    setPendingPronouns(pronouns: string | null) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_PRONOUNS",
+            pronouns,
+        });
+    },
+    setPendingThemeColors(themeColors: number[] | undefined) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_THEME_COLORS",
+            themeColors,
+        });
+    },
+    setPendingProfileEffectId(profileEffectId: string | undefined) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_PROFILE_EFFECT_ID",
+            profileEffectId,
+        });
+    },
+    setPendingAvatarDecoration(avatarDecoration: string | undefined) {
+        FluxDispatcher.dispatch({
+            type: "GUILD_IDENTITY_SETTINGS_SET_PENDING_AVATAR_DECORATION",
+            avatarDecoration,
+        });
+    },
+};
 
 export default definePlugin({
     name: "ServerProfilesToolbox",
@@ -86,28 +118,28 @@ export default definePlugin({
         };
 
         const paste = () => {
-            setPendingNickname(savedProfile.nick);
-            setPendingPronouns(savedProfile.pronouns);
+            IdentityActions.setPendingNickname(savedProfile.nick);
+            IdentityActions.setPendingPronouns(savedProfile.pronouns);
             if (premiumType === 2) {
-                setPendingBio(savedProfile.bio);
-                setPendingThemeColors(savedProfile.themeColors);
-                setPendingBanner(savedProfile.banner);
-                setPendingAvatar(savedProfile.avatar);
-                setPendingProfileEffectId(savedProfile.profileEffectId);
-                setPendingAvatarDecoration(savedProfile.avatarDecoration);
+                IdentityActions.setPendingBio(savedProfile.bio);
+                IdentityActions.setPendingThemeColors(savedProfile.themeColors);
+                IdentityActions.setPendingBanner(savedProfile.banner);
+                IdentityActions.setPendingAvatar(savedProfile.avatar);
+                IdentityActions.setPendingProfileEffectId(savedProfile.profileEffectId);
+                IdentityActions.setPendingAvatarDecoration(savedProfile.avatarDecoration);
             }
         };
 
         const reset = () => {
-            setPendingNickname(null);
-            setPendingPronouns("");
+            IdentityActions.setPendingNickname(null);
+            IdentityActions.setPendingPronouns("");
             if (premiumType === 2) {
-                setPendingBio(null);
-                setPendingThemeColors([]);
-                setPendingBanner(undefined);
-                setPendingAvatar(undefined);
-                setPendingProfileEffectId(undefined);
-                setPendingAvatarDecoration(undefined);
+                IdentityActions.setPendingBio(null);
+                IdentityActions.setPendingThemeColors([]);
+                IdentityActions.setPendingBanner(undefined);
+                IdentityActions.setPendingAvatar(undefined);
+                IdentityActions.setPendingProfileEffectId(undefined);
+                IdentityActions.setPendingAvatarDecoration(undefined);
             }
         };
 
