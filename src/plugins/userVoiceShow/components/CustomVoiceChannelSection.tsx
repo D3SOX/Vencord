@@ -20,14 +20,13 @@ import "./CustomVoiceChannelSection.css";
 
 import { classNameFactory } from "@api/Styles";
 import { LazyComponent } from "@utils/lazyReact";
-import { findByCode, findByCodeLazy, findByPropsLazy, findStoreLazy } from "@webpack";
+import { findByCode, findByPropsLazy, findStoreLazy } from "@webpack";
 import { Button, Forms, GuildStore, PermissionStore, Toasts, Tooltip, UserStore } from "@webpack/common";
 import type { Channel, User } from "discord-types/general";
 import { PropsWithChildren, SVGProps } from "react";
 
 const VoiceStateStore = findStoreLazy("VoiceStateStore");
 const ChannelActions = findByPropsLazy("selectChannel", "selectVoiceChannel");
-const UserPopoutSection = findByCodeLazy(".lastSection", "children:");
 const UserSummaryItem = LazyComponent(() => findByCode("defaultRenderUser", "showDefaultAvatarsForNullUsers"));
 const AvatarStyles = findByPropsLazy("moreUsers", "emptyUser", "avatarContainer", "clickableAvatar");
 
@@ -98,7 +97,7 @@ export const CustomVoiceChannelSection = ({ channel, showHeader, joinDisabled }:
 
     const channelPath = guild ? `/channels/${guild.id}/${channel.id}` : `/channels/@me/${channel.id}`;
 
-    return (<UserPopoutSection>
+    return (<div>
         {showHeader && <Forms.FormTitle className={cl("-header")}>
             In a voice channel
             <div>
@@ -160,5 +159,5 @@ export const CustomVoiceChannelSection = ({ channel, showHeader, joinDisabled }:
                 </Tooltip>
             </div>
         </div>
-    </UserPopoutSection>);
+    </div>);
 };

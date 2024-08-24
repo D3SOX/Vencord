@@ -19,15 +19,13 @@
 import "./VoiceChannelSection.css";
 
 import { Flex } from "@components/Flex";
-import { findByCodeLazy, findByPropsLazy } from "@webpack";
+import { findByPropsLazy } from "@webpack";
 import { Button, Forms, NavigationRouter, PermissionsBits, PermissionStore, Toasts } from "@webpack/common";
 import { Channel } from "discord-types/general";
 
 import eyeSvg from "./eye.svg";
 
 const ChannelActions = findByPropsLazy("selectChannel", "selectVoiceChannel");
-const UserPopoutSection = findByCodeLazy(".lastSection", "children:");
-
 
 interface VoiceChannelFieldProps {
     channel: Channel;
@@ -36,7 +34,7 @@ interface VoiceChannelFieldProps {
 }
 
 export const VoiceChannelSection = ({ channel, label, showHeader }: VoiceChannelFieldProps) => (
-    <UserPopoutSection>
+    <div>
         {showHeader && <Forms.FormTitle className="vc-uvs-header">In a voice channel</Forms.FormTitle>}
         <Flex
             flexDirection="row"
@@ -89,7 +87,7 @@ export const VoiceChannelSection = ({ channel, label, showHeader }: VoiceChannel
                 {eyeSvg()}
             </Button>
         </Flex>
-    </UserPopoutSection>
+    </div>
 );
 
 const getChannelPath = (c: Channel) => `/channels/${c.guild_id ?? "@me"}/${c.id}`;

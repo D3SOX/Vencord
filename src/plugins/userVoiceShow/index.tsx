@@ -150,13 +150,6 @@ export default definePlugin({
 
     patches: [
         {
-            find: ".popularApplicationCommandIds,",
-            replacement: {
-                match: /(?<=,)(?=!\i&&!\i&&.{0,50}setNote:)/,
-                replace: "$self.patchProfilePopout(arguments[0]),",
-            }
-        },
-        {
             find: ".Messages.MUTUAL_GUILDS_WITH_END_COUNT", // Lazy-loaded
             replacement: {
                 match: /applicationId:\i\.id}\),(?=.{0,50}setNote:\i)/,
@@ -187,7 +180,7 @@ export default definePlugin({
                 replace: "$&$self.patchPrivateChannelProfile({user:$1}),"
             }
         },
-        // simplified profiles
+        // simplified profiles TODO: fix
         {
             find: /\.BITE_SIZE,onOpenProfile:\i,usernameIcon:/,
             replacement: {
