@@ -120,7 +120,7 @@ export default definePlugin({
         );
     },
 
-    patchPopout: ({ user }: UserProps) => {
+    patchProfilePopout: ({ user }: UserProps) => {
         const isSelfUser = user.id === UserStore.getCurrentUser().id;
         return (
             <div className={isSelfUser ? "vc-uvs-popout-margin-self" : ""}>
@@ -153,14 +153,14 @@ export default definePlugin({
             find: ".popularApplicationCommandIds,",
             replacement: {
                 match: /(?<=,)(?=!\i&&!\i&&.{0,50}setNote:)/,
-                replace: "$self.patchPopout(arguments[0]),",
+                replace: "$self.patchProfilePopout(arguments[0]),",
             }
         },
         {
             find: ".Messages.MUTUAL_GUILDS_WITH_END_COUNT", // Lazy-loaded
             replacement: {
                 match: /applicationId:\i\.id}\),(?=.{0,50}setNote:\i)/,
-                replace: "$&$self.patchPopout(arguments[0]),",
+                replace: "$&$self.patchProfilePopout(arguments[0]),",
             }
         },
         {
@@ -192,7 +192,7 @@ export default definePlugin({
             find: /\.BITE_SIZE,onOpenProfile:\i,usernameIcon:/,
             replacement: {
                 match: /currentUser:\i,guild:\i,onOpenProfile:.+?}\)}\)/,
-                replace: "$&,$self.patchPopout(arguments[0])",
+                replace: "$&,$self.patchProfilePopout(arguments[0])",
             }
         },
         // simplified profiles
