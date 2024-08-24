@@ -29,13 +29,11 @@ const settings = definePluginSettings({
         markers: makeRange(1, 5, 1),
         default: 2,
         stickToMarkers: true,
-    },
+    }
 });
-// for some godforsaken reason, the volume is ran through this formula before its stored. patching it out does not work.
-const PerceptualVolume = {
-    amplitudeToPerceptual: findByCodeLazy("6+1:"),
-    // perceptualToAmplitude: findByCodeLazy("50-50"),
-};
+
+const amplitudeToPerceptual = findByCodeLazy("6+1:");
+
 interface StreamData {
     audioContext: AudioContext,
     audioElement: HTMLAudioElement,
@@ -50,8 +48,9 @@ interface StreamData {
     videoStreamId: string,
     _mute: boolean,
     _speakingFlags: number,
-    _volume: number
+    _volume: number;
 }
+
 export default definePlugin({
     name: "VolumeBooster",
     authors: [Devs.Nuckyz, Devs.sadan],
@@ -66,28 +65,20 @@ export default definePlugin({
         ].map(find => ({
             find,
             replacement: {
-                match: /(?<=maxValue:\i\.\i)\?(\d+?):(\d+?)(?=,)/,
-                replace: (_, higherMaxVolume, minorMaxVolume) => ""
-                    + `?${higherMaxVolume}*$self.settings.store.multiplier`
-                    + `:${minorMaxVolume}*$self.settings.store.multiplier`
+                match: /(?<=maxValue:)\i\.\i\?(\d+?):(\d+?)(?=,)/,
+                replace: (_, higherMaxVolume, minorMaxVolume) => `${higherMaxVolume}*$self.settings.store.multiplier`
             }
         })),
-        // PATCHES NEEDED FOR WEB/VESKTOP
+        // patches needed for web/vesktop
         {
             find: "streamSourceNode",
-            // @ts-ignore
             predicate: () => !IS_DISCORD_DESKTOP,
             group: true,
             replacement: [
                 // remove the cap of 100%
                 {
                     match: /Math\.max.{0,30}\)\)/,
-                    replace: "Math.round(arguments[0])"
-                },
-                // to update the volume on user join
-                {
-                    match: /,this\.stream\.getTracks\(\)\.length/,
-                    replace: ",this.updateAudioElement()$&"
+                    replace: "arguments[0]"
                 },
                 // to actually patch the volume
                 {
@@ -128,17 +119,20 @@ export default definePlugin({
             ]
         }
     ],
+
     patchVolume(data: StreamData) {
         if (data.stream.getAudioTracks().length === 0) return;
 
         data.streamSourceNode ??= data.audioContext.createMediaStreamSource(data.stream);
 
-        if (!data.gainNode){
+        if (!data.gainNode) {
             const gain = data.gainNode = data.audioContext.createGain();
             data.streamSourceNode.connect(gain);
             gain.connect(data.audioContext.destination);
         }
 
-        data.gainNode.gain.value = data._mute ? 0 : PerceptualVolume.amplitudeToPerceptual(data._volume)/100;
+        data.gainNode.gain.value = data._mute
+            ? 0
+            : amplitudeToPerceptual(data._volume) / 100;
     }
 });
