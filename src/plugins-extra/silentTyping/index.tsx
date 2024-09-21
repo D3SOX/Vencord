@@ -134,7 +134,7 @@ export default definePlugin({
     name: "SilentTyping",
     authors: [Devs.Ven, Devs.Rini, Devs.D3SOX],
     description: "Hide that you are typing",
-    dependencies: ["CommandsAPI", "ChatInputButtonAPI"],
+    dependencies: ["ChatInputButtonAPI"],
     settings,
 
     patches: [

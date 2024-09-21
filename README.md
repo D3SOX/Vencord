@@ -14,7 +14,6 @@ This is the branch of Vencord I personally run on my machine.
 - YouTubeDescription plugin ([#2427](https://github.com/Vendicated/Vencord/pull/2427))
 - DefaultStatusForever plugin ([#2636](https://github.com/Vendicated/Vencord/pull/2636))
 - SimplifiedProfileNotes plugin ([#2635](https://github.com/Vendicated/Vencord/pull/2635))
-- UserVoiceShow plugin enhanced ([#1669](https://github.com/Vendicated/Vencord/pull/1669), [#2248](https://github.com/Vendicated/Vencord/pull/2248), [#2665](https://github.com/Vendicated/Vencord/pull/2665))
 - ShowHiddenThings plugin enhanced ([#2652](https://github.com/Vendicated/Vencord/pull/2652))
 - NoModalAnimation plugin ([AutumnVM userplugins](https://github.com/AutumnVN/userplugins/))
 

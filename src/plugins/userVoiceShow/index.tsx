@@ -16,185 +16,85 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import "./style.css";
+
+import { addDecorator, removeDecorator } from "@api/MemberListDecorators";
 import { definePluginSettings } from "@api/Settings";
-import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
-import { findStoreLazy } from "@webpack";
-import { ChannelStore, GuildStore, UserStore } from "@webpack/common";
-import { User } from "discord-types/general";
 
-import { CustomVoiceChannelSection } from "./components/CustomVoiceChannelSection";
-import VoiceActivityIcon from "./components/VoiceActivityIcon";
-import { VoiceChannelSection } from "./components/VoiceChannelSection";
+import { VoiceChannelIndicator } from "./components";
 
-const VoiceStateStore = findStoreLazy("VoiceStateStore");
-
-export const settings = definePluginSettings({
+const settings = definePluginSettings({
     showInUserProfileModal: {
         type: OptionType.BOOLEAN,
-        description: "Show a user's voice channel in their profile modal",
+        description: "Show a user's Voice Channel indicator in their profile next to the name",
         default: true,
+        restartNeeded: true
     },
-    showVoiceChannelSectionHeader: {
+    showInMemberList: {
         type: OptionType.BOOLEAN,
-        description: 'Whether to show "IN A VOICE CHANNEL" above the join button',
+        description: "Show a user's Voice Channel indicator in the member and DMs list",
         default: true,
-    },
-    voiceChannelSection: {
-        type: OptionType.SELECT,
-        description: 'What "Voice Channel Section" should be shown',
-        options: [
-            {
-                label: "Default",
-                value: "default",
-                default: true
-            },
-            {
-                label: "Custom",
-                value: "custom",
-            }
-        ]
-    },
-    showVoiceActivityIcons: {
-        type: OptionType.BOOLEAN,
-        description: "Show a user's voice activity in dm list and member list",
-        default: true,
-        restartNeeded: true,
-    },
-    showUsersInVoiceActivity: {
-        type: OptionType.BOOLEAN,
-        description: "Whether to show a list of users connected to a channel",
-        default: true,
-        disabled: () => !settings.store.showVoiceActivityIcons
-    },
+        restartNeeded: true
+    }
 });
-
-interface UserProps {
-    user: User;
-}
-
-const VoiceChannelField = ErrorBoundary.wrap(({ user }: UserProps) => {
-    const { channelId } = VoiceStateStore.getVoiceStateForUser(user.id) ?? {};
-    if (!channelId) return null;
-
-    const channel = ChannelStore.getChannel(channelId);
-    if (!channel) return null;
-
-    const guild = GuildStore.getGuild(channel.guild_id);
-
-    if (!guild) return null; // When in DM call
-
-    const result = `${guild.name} | ${channel.name}`;
-
-    return (
-        settings.store.voiceChannelSection === "default" ?
-            <VoiceChannelSection
-                channel={channel}
-                label={result}
-                showHeader={settings.store.showVoiceChannelSectionHeader}
-            /> : <CustomVoiceChannelSection
-                channel={channel}
-                joinDisabled={VoiceStateStore.getVoiceStateForUser(UserStore.getCurrentUser().id)?.channelId === channelId}
-                showHeader={settings.store.showVoiceChannelSectionHeader}
-            />
-    );
-});
-
 
 export default definePlugin({
     name: "UserVoiceShow",
-    description: "Shows whether a User is currently in a voice channel somewhere in their profile",
-    authors: [Devs.LordElias, Devs.Johannes7k75],
-    tags: ["voice", "activity"],
+    description: "Shows an indicator when a user is in a Voice Channel",
+    authors: [Devs.LordElias, Devs.Nuckyz],
     settings,
 
-    patchModal({ user }: UserProps) {
-        if (!settings.store.showInUserProfileModal)
-            return null;
-
-        return (
-            <div className="vc-uvs-modal-margin">
-                <VoiceChannelField user={user} />
-            </div>
-        );
-    },
-
-    patchProfilePopout: ({ user }: UserProps) => {
-        const isSelfUser = user.id === UserStore.getCurrentUser().id;
-        return (
-            <div className={isSelfUser ? "vc-uvs-popout-margin-self" : ""}>
-                <VoiceChannelField user={user} />
-            </div>
-        );
-    },
-
-    patchUserList: ({ user }: UserProps, dmList: boolean) => {
-        if (!settings.store.showVoiceActivityIcons) return null;
-
-        return (
-            <ErrorBoundary noop>
-                <VoiceActivityIcon user={user} dmChannel={dmList} />
-            </ErrorBoundary>
-
-        );
-    },
-
-    patchPrivateChannelProfile({ user }: UserProps) {
-        if (!user) return;
-
-        return <div className="vc-uvs-private-channel">
-            <VoiceChannelField user={user} />
-        </div>;
-    },
-
     patches: [
+        // User Popout, Full Size Profile, Direct Messages Side Profile
         {
-            find: ".Messages.MUTUAL_GUILDS_WITH_END_COUNT", // Lazy-loaded
+            find: ".Messages.USER_PROFILE_LOAD_ERROR",
             replacement: {
-                match: /applicationId:\i\.id}\),(?=.{0,50}setNote:\i)/,
-                replace: "$&$self.patchProfilePopout(arguments[0]),",
-            }
+                match: /(\.fetchError.+?\?)null/,
+                replace: (_, rest) => `${rest}$self.VoiceChannelIndicator({userId:arguments[0]?.userId})`
+            },
+            predicate: () => settings.store.showInUserProfileModal
         },
+        // To use without the MemberList decorator API
+        /* // Guild Members List
         {
-            // Patch Member List
-            find: ".MEMBER_LIST_ITEM_AVATAR_DECORATION_PADDING)",
+            find: ".lostPermission)",
             replacement: {
-                match: /avatar:\i\(\i,\i\)/,
-                replace: "children:[$self.patchUserList(arguments[0], false)],$&",
-            }
+                match: /\.lostPermission\).+?(?=avatar:)/,
+                replace: "$&children:[$self.VoiceChannelIndicator({userId:arguments[0]?.user?.id})],"
+            },
+            predicate: () => settings.store.showVoiceChannelIndicator
         },
+        // Direct Messages List
         {
-            // Patch Dm List
             find: "PrivateChannel.renderAvatar",
             replacement: {
-                match: /highlighted:.+?name:.+?decorators.+?\}\)\}\),/,
-                replace: "$&$self.patchUserList(arguments[0], true),",
-            }
-        },
-        // Private Channel Profile - above Activities
+                match: /\.Messages\.CLOSE_DM.+?}\)(?=])/,
+                replace: "$&,$self.VoiceChannelIndicator({userId:arguments[0]?.user?.id})"
+            },
+            predicate: () => settings.store.showVoiceChannelIndicator
+        }, */
+        // Friends List
         {
-            find: "UserProfileTypes.PANEL,useDefaultClientTheme",
+            find: "null!=this.peopleListItemRef.current",
             replacement: {
-                match: /user:(\i).+?voiceGuild,voiceChannel.+?:null,/,
-                replace: "$&$self.patchPrivateChannelProfile({user:$1}),"
-            }
-        },
-        // simplified profiles TODO: fix
-        {
-            find: /\.BITE_SIZE,onOpenProfile:\i,usernameIcon:/,
-            replacement: {
-                match: /currentUser:\i,guild:\i,onOpenProfile:.+?}\)}\)/,
-                replace: "$&,$self.patchProfilePopout(arguments[0])",
-            }
-        },
-        // simplified profiles
-        {
-            find: "action:\"PRESS_APP_CONNECTION\"", // Lazy-loaded
-            replacement: {
-                match: /.Messages.CONNECTIONS,.+?}\)}\),/,
-                replace: "$&$self.patchModal(arguments[0]),",
-            }
+                match: /\.actions,children:\[/,
+                replace: "$&$self.VoiceChannelIndicator({userId:this?.props?.user?.id,size:20,isActionButton:true}),"
+            },
+            predicate: () => settings.store.showInMemberList
         }
     ],
+
+    start() {
+        if (settings.store.showInMemberList) {
+            addDecorator("UserVoiceShow", ({ user }) => user == null ? null : <VoiceChannelIndicator userId={user.id} />);
+        }
+    },
+
+    stop() {
+        removeDecorator("UserVoiceShow");
+    },
+
+    VoiceChannelIndicator
 });
