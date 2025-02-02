@@ -42,6 +42,8 @@ export default definePlugin({
     tags: ["ShowTimeouts", "ShowInvitesPaused", "ShowModView", "DisableDiscoveryFilters", "ShowMembersPage"],
     description: "Displays various hidden & moderator-only things regardless of permissions.",
     authors: [Devs.Dolfies, Devs.Sqaaakoi],
+    settings,
+
     patches: [
         {
             find: "showCommunicationDisabledStyles",
@@ -60,7 +62,7 @@ export default definePlugin({
             },
         },
         {
-            find: /context:\i,checkElevated:!1\}\),\i\.\i.{0,200}autoTrackExposure/,
+            find: /,checkElevated:!1}\),\i\.\i\)}(?<=getCurrentUser\(\);return.+?)/,
             predicate: () => settings.store.showModView,
             replacement: {
                 match: /return \i\.\i\(\i\.\i\(\{user:\i,context:\i,checkElevated:!1\}\),\i\.\i\)/,
@@ -69,7 +71,7 @@ export default definePlugin({
         },
         // fixes a bug where Members page must be loaded to see highest role, why is Discord depending on MemberSafetyStore.getEnhancedMember for something that can be obtained here?
         {
-            find: "#{intl::GUILD_MEMBER_MOD_VIEW_PERMISSION_GRANTED_BY_ARIA_LABEL}",
+            find: "#{intl::GUILD_MEMBER_MOD_VIEW_PERMISSION_GRANTED_BY_ARIA_LABEL}),allowOverflow:",
             predicate: () => settings.store.showModView,
             replacement: {
                 match: /(role:)\i(?=,guildId.{0,100}role:(\i\[))/,
@@ -78,7 +80,7 @@ export default definePlugin({
         },
         // allows you to open mod view on yourself
         {
-            find: ".MEMBER_SAFETY,{modViewPanel:",
+            find: 'action:"PRESS_MOD_VIEW",icon:',
             predicate: () => settings.store.showModView,
             replacement: {
                 match: /\i(?=\?null)/,
@@ -156,5 +158,4 @@ export default definePlugin({
             }
         },
     ],
-    settings,
 });
