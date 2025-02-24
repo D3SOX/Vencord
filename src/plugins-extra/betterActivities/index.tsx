@@ -12,8 +12,9 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import { findByPropsLazy, findComponentByCodeLazy, findStoreLazy } from "@webpack";
-import { PresenceStore, React, Tooltip, useEffect, useMemo, useState, useStateFromStores } from "@webpack/common";
+import { PresenceStore, React, Tooltip, useEffect, useMemo, UserStore, useState, useStateFromStores } from "@webpack/common";
 import { User } from "discord-types/general";
+import { JSX } from "react";
 
 import { Caret } from "./components/Caret";
 import { SpotifyIcon } from "./components/SpotifyIcon";
@@ -102,8 +103,8 @@ const ActivityView = findComponentByCodeLazy<{
     activity: Activity | null;
     user: User;
     application?: Application;
-    type?: string;
-}>(",onOpenGameProfileModal:");
+    currentUser: User;
+}>('location:"UserProfileActivityCard",');
 
 // if discord one day decides to change their icon this needs to be updated
 const DefaultActivityIcon = findComponentByCodeLazy("M6,7 L2,7 L2,6 L6,6 L6,7 Z M8,5 L2,5 L2,4 L8,4 L8,5 Z M8,3 L2,3 L2,2 L8,2 L8,3 Z M8.88888889,0 L1.11111111,0 C0.494444444,0 0,0.494444444 0,1.11111111 L0,8.88888889 C0,9.50253861 0.497461389,10 1.11111111,10 L8.88888889,10 C9.50253861,10 10,9.50253861 10,8.88888889 L10,1.11111111 C10,0.494444444 9.5,0 8.88888889,0 Z");
@@ -113,6 +114,8 @@ const fetchedApplications = new Map<string, Application | null>();
 const xboxUrl = "https://discord.com/assets/9a15d086141be29d9fcd.png"; // TODO: replace with "renderXboxImage"?
 
 const ActivityTooltip = ({ activity, application, user }: Readonly<{ activity: Activity, application?: Application, user: User; }>) => {
+    const currentUser = UserStore.getCurrentUser();
+    if (!currentUser) return null;
     return (
         <ErrorBoundary>
             <div className={cl("activity-tooltip")}>
@@ -120,7 +123,7 @@ const ActivityTooltip = ({ activity, application, user }: Readonly<{ activity: A
                     activity={activity}
                     user={user}
                     application={application}
-                    type="BiteSizePopout"
+                    currentUser={currentUser}
                 />
             </div>
         </ErrorBoundary>
@@ -246,6 +249,8 @@ export default definePlugin({
     patchActivityList: ({ activities, user }: { activities: Activity[], user: User; }): JSX.Element | null => {
         const icons: ActivityListIcon[] = [];
 
+        if (user.bot) return null;
+
         const applicationIcons = getApplicationIcons(activities);
         if (applicationIcons.length) {
             const compareImageSource = (a: ApplicationIcon, b: ApplicationIcon) => {
@@ -315,7 +320,10 @@ export default definePlugin({
         return null;
     },
 
-    showAllActivitiesComponent({ activity, user, ...props }: Readonly<{ activity: Activity | null; user: User; application: Application; type: string; }>) {
+    showAllActivitiesComponent({ activity, user, ...props }: Readonly<{ activity: Activity; user: User; application: Application; type: string; }>) {
+        const currentUser = UserStore.getCurrentUser();
+        if (!currentUser) return null;
+
         const [currentActivity, setCurrentActivity] = useState<Activity | null>(
             activity?.type !== 4 ? activity! : null
         );
@@ -350,6 +358,7 @@ export default definePlugin({
                         <ActivityView
                             activity={currentActivity}
                             user={user}
+                            currentUser={currentUser}
                             {...props}
                         />
                     ) : (
@@ -358,6 +367,7 @@ export default definePlugin({
                             user={user}
                             // fetch optional application
                             application={getActivityApplication(currentActivity!)}
+                            currentUser={currentUser}
                             {...generalProps}
                         />
                     )}
@@ -435,6 +445,7 @@ export default definePlugin({
                                 key={index}
                                 activity={activity}
                                 user={user}
+                                currentUser={currentUser}
                                 {...props}
                             />) : (
                             <ActivityView
@@ -442,6 +453,7 @@ export default definePlugin({
                                 activity={activity}
                                 user={user}
                                 application={getActivityApplication(activity)}
+                                currentUser={currentUser}
                                 {...generalProps}
                             />
                         ))}
@@ -453,15 +465,16 @@ export default definePlugin({
     patches: [
         {
             // Patch activity icons
-            find: ".getHangStatusActivity():null!",
+            find: "\"activity-status-web",
             replacement: {
-                match: /null!=(\i)&&\i.some\(\i=>\(0,\i.\i\)\(\i,\i\)\)\?/,
-                replace: "$self.patchActivityList(e),false?"
+                match: /(?<=hasQuest:\i\}=(\i).*?)\(null==\i?\?void 0:\i.some\(\i\.\i\)\)/,
+                replace: "$self.patchActivityList($1),false"
             },
             predicate: () => settings.store.memberList,
         },
         {
             // Show all activities in the user popout/sidebar
+            // still broken btw
             find: '"UserActivityContainer"',
             replacement: {
                 match: /(?<=\(0,\i\.jsx\)\()(\i\.\i)(?=,{...(\i),activity:\i,user:\i,application:\i)/,
