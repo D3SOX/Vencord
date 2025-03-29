@@ -124,7 +124,7 @@ export default definePlugin({
             }
         },
         {
-            find: ".GUILD_SETTINGS_SAFETY_MODERATION_EXPERIENCE_ENABLED",
+            find: ".GUILD_SETTINGS_MEMBERS_PAGE),",
             predicate: () => settings.store.showMembersPageInSettings,
             replacement: {
                 match: /\i\.hasFeature\(\i\.\i\.ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY\)/,
@@ -133,7 +133,7 @@ export default definePlugin({
         },
         // disable redirect to sidebar
         {
-            find: /\i\.isCommunity\(\).{0,300}WindowLaunchIcon/,
+            find: "GuildSettingsMembersRow",
             predicate: () => settings.store.showMembersPageInSettings,
             replacement: {
                 match: /\i\.isCommunity\(\)/,
@@ -141,7 +141,7 @@ export default definePlugin({
             }
         },
         {
-            find: /ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY.{0,500}GUILD_MOD_DASH_MEMBER_SAFETY/,
+            find: /ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY.{0,700}GUILD_MOD_DASH_MEMBER_SAFETY/,
             predicate: () => settings.store.showMembersPageInSidebar,
             replacement: {
                 match: /\i\.hasFeature\(\i\.\i\.ENABLED_MODERATION_EXPERIENCE_FOR_NON_COMMUNITY\)/,
