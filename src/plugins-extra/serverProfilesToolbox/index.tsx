@@ -6,12 +6,12 @@
 
 import "./styles.css";
 
+import { copyToClipboard } from "@utils/clipboard";
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
 import { findComponentByCodeLazy } from "@webpack";
 import {
     Button,
-    Clipboard,
     FluxDispatcher,
     GuildMemberStore,
     Text,
@@ -146,9 +146,9 @@ export default definePlugin({
             }
         };
 
-        const copyToClipboard = () => {
+        const copyClipboard = () => {
             copy();
-            Clipboard.copy(JSON.stringify(savedProfile));
+            copyToClipboard(JSON.stringify(savedProfile));
         };
 
         const pasteFromClipboard = async () => {
@@ -201,7 +201,7 @@ export default definePlugin({
                     </Button>
                 </div>
                 <div style={{ display: "flex", gap: "5px" }}>
-                    <Button onClick={copyToClipboard}>
+                    <Button onClick={copyClipboard}>
                         Copy to clipboard
                     </Button>
                     <Button onClick={pasteFromClipboard}>
