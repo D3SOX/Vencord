@@ -131,6 +131,15 @@ export default definePlugin({
                 replace: "$&,$self.renderComponent($1)"
             }
         },
+        // remove native voice message control
+        // thought about removing it from here but this provides extra functionality like default/other speeds
+        {
+            find: "\"VoiceMessagePlayer\"",
+            replacement: {
+                match: /(?<=\}\)),\i(?=&&\(0,\i\.jsx\)\(\i\.\i,)/,
+                replace: ",false"
+            }
+        },
         // audio & video embeds
         {
             // need to pass media ref via props to make it easily accessible from inside controls
