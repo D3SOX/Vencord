@@ -9,7 +9,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import { getIntlMessage } from "@utils/discord";
 import definePlugin, { OptionType } from "@utils/types";
-import { extractAndLoadChunksLazy, findByCodeLazy, findByPropsLazy, findComponentByCodeLazy } from "@webpack";
+import { DefaultExtractAndLoadChunksRegex, extractAndLoadChunksLazy, findByCodeLazy, findByPropsLazy, findComponentByCodeLazy } from "@webpack";
 import { useEffect, useState } from "@webpack/common";
 import { User } from "discord-types/general";
 
@@ -18,7 +18,7 @@ const NoteEditor = findComponentByCodeLazy("#{intl::NOTE_PLACEHOLDER}");
 const Section = findComponentByCodeLazy("section", '"header-secondary"', "requestAnimationFrame");
 
 const classes = findByPropsLazy("note", "appsConnections");
-const requireClasses = extractAndLoadChunksLazy(['"USER_PROFILE_MODAL_KEY:".concat(']);
+const requireClasses = extractAndLoadChunksLazy(['"USER_PROFILE_MODAL_KEY:".concat('], new RegExp(":(?:await ?)?" + DefaultExtractAndLoadChunksRegex.source));
 
 const settings = definePluginSettings({
     hideWhenEmpty: {
@@ -66,7 +66,7 @@ function NotesSection(props: NoteHook & NotesSectionProps) {
     }, []);
     if (!props.visible || !loaded) return null;
     return <Section
-        heading={getIntlMessage("NOTE")}
+        heading={getIntlMessage("NOTE_PRIVATE")}
         scrollIntoView={props.autoFocus}
         headingColor={props.headingColor}
     >
@@ -87,7 +87,8 @@ export default definePlugin({
     patches: [
         {
             // Popout
-            find: /\.BITE_SIZE,onOpenProfile:\i,/,
+            // Do not use the ".hasAvatarForGuild(null==" from ShowConnections as that doesn't apply to bot profiles
+            find: /\.POPOUT,onClose:\i}\),nicknameIcons/,
             all: true,
             replacement: {
                 match: /onOpenProfile:.+?}\)(?=])(?<=user:(\i),bio:null==(\i)\?.+?)/,
@@ -96,7 +97,7 @@ export default definePlugin({
         },
         {
             // DM Sidebar
-            find: ".PANEL}),nicknameIcons",
+            find: ".SIDEBAR}),nicknameIcons",
             replacement: {
                 match: /(\(0,.{0,100}?#{intl::BOT_PROFILE_CREATED_ON}.{0,100}?userId:(\i)\.id}\)\}\))(.{0,200}?)\]\}/,
                 replace: "$1$3,$self.NotesSection({ headingColor: 'header-primary', user: $2, ...vencordNotesHook })]}"
