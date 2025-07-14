@@ -22,9 +22,9 @@ import "./VoiceActivityIcon.css";
 
 import { classNameFactory } from "@api/Styles";
 import { LazyComponent } from "@utils/react";
+import { User } from "@vencord/discord-types";
 import { findByCode, findByCodeLazy, findByPropsLazy, findStoreLazy } from "@webpack";
 import { ChannelStore, GuildStore, PermissionStore, Tooltip, UserStore, useStateFromStores } from "@webpack/common";
-import { User } from "discord-types/general";
 import { PropsWithChildren, SVGProps } from "react";
 
 import { settings } from "..";
@@ -140,7 +140,8 @@ export default ({ user, dmChannel }: VoiceActivityIconProps) => {
     if (!channel) return null;
     const guild = GuildStore.getGuild(channel.guild_id);
 
-    if (settings.store.showUsersInVoiceActivity) {
+    // eslint-disable-next-line no-constant-condition
+    if (true || settings.store.showUsersInVoiceActivity) {
         voiceChannelUsers = (Object.values(VoiceStateStore.getVoiceStatesForChannel(channel?.id)) as VoiceState[]).map(vs => UserStore.getUser(vs.userId));
     }
 

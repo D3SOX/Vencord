@@ -9,8 +9,8 @@ import { definePluginSettings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import { sendMessage } from "@utils/discord";
 import definePlugin, { OptionType } from "@utils/types";
+import type { Channel, User } from "@vencord/discord-types";
 import { Menu, React, UserStore } from "@webpack/common";
-import type { Channel, User } from "discord-types/general";
 
 // TODO: allow multiple commands with a table like
 // TODO: NAME | COMMAND | CHANNEL

@@ -9,9 +9,9 @@ import { showNotification } from "@api/Notifications";
 import { definePluginSettings, Settings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
+import type { Channel, User } from "@vencord/discord-types";
 import { findByPropsLazy, findStoreLazy } from "@webpack";
 import { Menu, PresenceStore, React, SelectedChannelStore, Tooltip, UserStore } from "@webpack/common";
-import type { Channel, User } from "discord-types/general";
 import { CSSProperties } from "react";
 
 import { NotificationsOffIcon } from "./components/NotificationsOffIcon";

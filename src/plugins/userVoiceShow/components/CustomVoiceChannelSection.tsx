@@ -20,9 +20,9 @@ import "./CustomVoiceChannelSection.css";
 
 import { classNameFactory } from "@api/Styles";
 import { LazyComponent } from "@utils/lazyReact";
+import type { Channel, User } from "@vencord/discord-types";
 import { findByCode, findByPropsLazy, findStoreLazy } from "@webpack";
-import { Button, Forms, GuildStore, PermissionStore, Toasts, Tooltip, UserStore } from "@webpack/common";
-import type { Channel, User } from "discord-types/general";
+import { Button, Forms, GuildStore, IconUtils, PermissionStore, Toasts, Tooltip, UserStore } from "@webpack/common";
 import { PropsWithChildren, SVGProps } from "react";
 
 const VoiceStateStore = findStoreLazy("VoiceStateStore");
@@ -113,7 +113,12 @@ export const CustomVoiceChannelSection = ({ channel, showHeader, joinDisabled }:
         </Forms.FormTitle>}
         <div className="vc-uvs-custom">
             <div className={cl("-channelinfo")}>
-                <img className={cl("-guild-image")} src={guild.getIconURL(128, false)} alt="Serve Icon" width={48} />
+                <img className={cl("-guild-image")} src={IconUtils.getGuildIconURL({
+                    id: guild.id,
+                    icon: guild.icon,
+                    canAnimate: false,
+                    size: 128
+                })} alt="Serve Icon" width={48} />
                 <div className={cl("-guild-name")}>
                     <h3>{guild.name}</h3>
                     <div>{channel.name}</div>

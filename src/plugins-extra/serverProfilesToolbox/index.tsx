@@ -9,6 +9,7 @@ import "./styles.css";
 import { copyToClipboard } from "@utils/clipboard";
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
+import { Guild, GuildMember } from "@vencord/discord-types";
 import { findComponentByCodeLazy } from "@webpack";
 import {
     Button,
@@ -19,7 +20,6 @@ import {
     UserProfileStore,
     UserStore
 } from "@webpack/common";
-import { Guild, GuildMember } from "discord-types/general";
 
 const SummaryItem = findComponentByCodeLazy("borderType", "showBorder", "hideDivider");
 

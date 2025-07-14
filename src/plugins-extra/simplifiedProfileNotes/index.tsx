@@ -9,9 +9,9 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import { getIntlMessage } from "@utils/discord";
 import definePlugin, { OptionType } from "@utils/types";
+import { User } from "@vencord/discord-types";
 import { DefaultExtractAndLoadChunksRegex, extractAndLoadChunksLazy, findByCodeLazy, findByPropsLazy, findComponentByCodeLazy } from "@webpack";
 import { useEffect, useState } from "@webpack/common";
-import { User } from "discord-types/general";
 
 const useNote = findByCodeLazy(".getNote(");
 const NoteEditor = findComponentByCodeLazy("#{intl::NOTE_PLACEHOLDER}");
