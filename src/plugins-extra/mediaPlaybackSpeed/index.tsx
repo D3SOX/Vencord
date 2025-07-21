@@ -139,13 +139,6 @@ export default definePlugin({
                 replace: ",false"
             }
         },
-        {
-            find: "\"tag\",\"focusProps\",\"innerRef\",\"onClick\",\"role\",\"tabIndex\",\"ignoreKeyPress\"",
-            replacement: {
-                match: /render(){/,
-                replace: "render(){return;"
-            }
-        },
         // audio & video embeds
         {
             // need to pass media ref via props to make it easily accessible from inside controls
