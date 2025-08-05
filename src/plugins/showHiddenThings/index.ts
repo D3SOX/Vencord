@@ -18,7 +18,9 @@
 
 import { definePluginSettings } from "@api/Settings";
 import { Devs } from "@utils/constants";
+import { Logger } from "@utils/Logger";
 import definePlugin, { OptionType, PluginSettingDef } from "@utils/types";
+import { GuildMember, Role } from "@vencord/discord-types";
 
 const opt = (description: string) => ({
     type: OptionType.BOOLEAN,
@@ -74,8 +76,8 @@ export default definePlugin({
             find: "#{intl::GUILD_MEMBER_MOD_VIEW_PERMISSION_GRANTED_BY_ARIA_LABEL}),allowOverflow:",
             predicate: () => settings.store.showModView,
             replacement: {
-                match: /(role:)\i(?=,guildId.{0,100}role:(\i\[))/,
-                replace: "$1$2arguments[0].member.highestRoleId]",
+                match: /(role:)\i(?<=\i\.roles,\i\.highestRoleId,(\i)\].+)/,
+                replace: "$1$self.findHighestRole(arguments[0],$2)",
             }
         },
         // allows you to open mod view on yourself
@@ -158,4 +160,13 @@ export default definePlugin({
             }
         },
     ],
+
+    findHighestRole({ member }: { member: GuildMember; }, roles: Role[]): Role | undefined {
+        try {
+            return roles.find(role => role.id === member.highestRoleId);
+        } catch (e) {
+            new Logger("ShowHiddenThings").error("Failed to find highest role", e);
+            return undefined;
+        }
+    }
 });
