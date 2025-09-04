@@ -23,7 +23,7 @@ export default definePlugin({
         Devs.D3SOX,
         Devs.Arjix,
         Devs.AutumnVN,
-        { name: "thororen", id: 848339671629299742n }
+        Devs.thororen
     ],
     tags: ["activity"],
 
