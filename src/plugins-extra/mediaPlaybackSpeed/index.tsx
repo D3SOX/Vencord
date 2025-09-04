@@ -16,7 +16,7 @@ import { RefObject } from "react";
 
 import SpeedIcon from "./components/SpeedIcon";
 
-const cl = classNameFactory("vc-media-playback-speed-");
+const cl = classNameFactory("vc-mediaPlaybackSpeed-");
 
 const min = 0.25;
 const max = 3.5;
@@ -61,7 +61,7 @@ export default definePlugin({
 
     settings,
 
-    PlaybackSpeedComponent({ mediaRef }: { mediaRef: MediaRef }) {
+    renderPlaybackSpeedComponent: ErrorBoundary.wrap(({ mediaRef }: { mediaRef: MediaRef })=> {
         const changeSpeed = (speed: number) => {
             const media = mediaRef?.current;
             if (media) {
@@ -70,8 +70,8 @@ export default definePlugin({
         };
 
         useEffect(() => {
-            if (!mediaRef?.current) return;
-            const media = mediaRef.current;
+            const media = mediaRef?.current;
+            if (!media) return;
             if (media.tagName === "AUDIO") {
                 const isVoiceMessage = media.className.includes("audioElement_");
                 changeSpeed(isVoiceMessage ? settings.store.defaultVoiceMessageSpeed : settings.store.defaultAudioSpeed);
@@ -113,30 +113,15 @@ export default definePlugin({
                 )}
             </Tooltip>
         );
-    },
-
-    renderComponent(mediaRef: MediaRef) {
-        return <ErrorBoundary noop>
-            <this.PlaybackSpeedComponent mediaRef={mediaRef} />
-        </ErrorBoundary>;
-    },
+    }),
 
     patches: [
-        // voice message embeds
+        // replace voice message embed speed control because ours provides more speeds
         {
             find: "\"--:--\"",
             replacement: {
-                match: /onVolumeShow:\i,onVolumeHide:\i\}\)(?<=useCallback\(\(\)=>\{let \i=(\i).current;.+?)/,
-                replace: "$&,$self.renderComponent($1)"
-            }
-        },
-        // remove native voice message control
-        // thought about removing it from here but this provides extra functionality like default/other speeds
-        {
-            find: "\"VoiceMessagePlayer\"",
-            replacement: {
-                match: /(?<=\}\)),\i(?=&&\(0,\i\.jsx\)\(\i\.\i,)/,
-                replace: ",false"
+                match: /\(0,\i\.jsx\)\(\i\.\i,{className:\i\.playbackRateContainer[\s\S]*?\}\),\(0,/,
+                replace: "$self.renderPlaybackSpeedComponent({mediaRef:this?.props?.mediaRef}), (0,"
             }
         },
         // audio & video embeds
@@ -152,7 +137,7 @@ export default definePlugin({
             find: "AUDIO:\"AUDIO\"",
             replacement: {
                 match: /onVolumeHide:\i,iconClassName:\i.controlIcon,iconColor:"currentColor",sliderWrapperClassName:\i.volumeSliderWrapper\}\)\}\),/,
-                replace: "$&$self.renderComponent(this.props.mediaRef),"
+                replace: "$&$self.renderPlaybackSpeedComponent({mediaRef:this?.props?.mediaRef}),"
             }
         }
     ]
