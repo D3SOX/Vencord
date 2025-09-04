@@ -11,7 +11,7 @@ import { classNameFactory } from "@api/Styles";
 import ErrorBoundary from "@components/ErrorBoundary";
 import { Devs } from "@utils/constants";
 import definePlugin, { makeRange, OptionType } from "@utils/types";
-import { ContextMenuApi, FluxDispatcher, Heading, Menu, React, Tooltip, useEffect } from "@webpack/common";
+import { ContextMenuApi, FluxDispatcher, Menu, React, Tooltip, useEffect } from "@webpack/common";
 import { RefObject } from "react";
 
 import SpeedIcon from "./components/SpeedIcon";
@@ -23,15 +23,6 @@ const max = 3.5;
 const speeds = makeRange(min, max, 0.25);
 
 const settings = definePluginSettings({
-    test: {
-        type: OptionType.COMPONENT,
-        description: "",
-        component() {
-            return <Heading variant="heading-lg/bold" selectable={false}>
-                Default playback speeds
-            </Heading>;
-        }
-    },
     defaultVoiceMessageSpeed: {
         type: OptionType.SLIDER,
         default: 1,
@@ -74,7 +65,11 @@ export default definePlugin({
             if (!media) return;
             if (media.tagName === "AUDIO") {
                 const isVoiceMessage = media.className.includes("audioElement_");
-                changeSpeed(isVoiceMessage ? settings.store.defaultVoiceMessageSpeed : settings.store.defaultAudioSpeed);
+                if (isVoiceMessage) {
+                    media.addEventListener("play", () => { changeSpeed(settings.store.defaultVoiceMessageSpeed); }, { once: true });
+                } else {
+                    changeSpeed(settings.store.defaultAudioSpeed);
+                }
             } else if (media.tagName === "VIDEO") {
                 changeSpeed(settings.store.defaultVideoSpeed);
             }
