@@ -21,8 +21,6 @@ This is the branch of Vencord I personally run on my machine.
 
 Only a manual installation is supported for now. See the [Vencord Installation docs](https://docs.vencord.dev/installing/). Make sure to replace all instances of `Vendicated/Vencord` with `D3SOX/Vencord`.
 
-If you want to use Vesktop instead of Discord Desktop you can [install my branch](https://github.com/D3SOX/Vesktop#installing) which comes with my Vencord branch by default
-
 ## Disclaimer
 
 Discord is trademark of Discord Inc. and solely mentioned for the sake of descriptivity.
