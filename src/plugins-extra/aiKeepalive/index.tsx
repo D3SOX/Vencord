@@ -51,7 +51,7 @@ function resetInactivityTimeout(channelId: string) {
         inactivityTimeout = null;
     }
 
-    // Set new timeout for 2.5 minutes (150000ms)
+    // Set new timeout for 6 minutes (360000ms)
     inactivityTimeout = setTimeout(() => {
         if (!activeChannelId || channelId !== activeChannelId) {
             return;
@@ -84,7 +84,7 @@ function resetInactivityTimeout(channelId: string) {
         } catch (e) {
             console.error("[AIKeepalive] Error in inactivity timeout:", e);
         }
-    }, 150000) as unknown as NodeJS.Timeout; // 2.5 minutes
+    }, 360000) as unknown as NodeJS.Timeout; // 6 minutes
 }
 
 // Helper function to check if we should respond and send a message
