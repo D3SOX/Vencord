@@ -50,11 +50,11 @@ function generateRandomMessage(): string {
     return complexProblems[Math.floor(Math.random() * complexProblems.length)];
 }
 
-// Helper function to check if the last 5 messages are from the current user
-function checkLastFiveMessages(channelId: string): boolean {
+// Helper function to check if the last x messages are from the current user
+function checkLastXMessages(channelId: string, x: number = 4): boolean {
     try {
         const messages = MessageStore.getMessages(channelId);
-        if (!messages || !messages._array || messages._array.length < 5) {
+        if (!messages || !messages._array || messages._array.length < x) {
             return false;
         }
 
@@ -63,13 +63,13 @@ function checkLastFiveMessages(channelId: string): boolean {
             return false;
         }
 
-        // Get the last 5 messages
-        const lastFiveMessages = messages._array.slice(-5) as Message[];
+        // Get the last 4 messages
+        const lastXMessages = messages._array.slice(-x) as Message[];
 
-        // Check if all last 5 messages are from the current user
-        return lastFiveMessages.every(msg => msg.author.id === currentUser.id);
+        // Check if all last 4 messages are from the current user
+        return lastXMessages.every(msg => msg.author.id === currentUser.id);
     } catch (e) {
-        console.error("[AIKeepalive] Error checking last five messages:", e);
+        console.error(`[AIKeepalive] Error checking last ${x} messages:`, e);
         showNotification({
             title: "AIKeepalive Error",
             body: "Error checking message history",
@@ -79,7 +79,7 @@ function checkLastFiveMessages(channelId: string): boolean {
     }
 }
 
-// Helper function to start the 10-minute timeout when scammer hasn't replied
+// Helper function to start the 15-minute timeout when scammer hasn't replied
 function startScammerNoReplyTimeout(channelId: string) {
     // Clear existing timeout
     if (scammerNoReplyTimeout) {
@@ -87,7 +87,7 @@ function startScammerNoReplyTimeout(channelId: string) {
         scammerNoReplyTimeout = null;
     }
 
-    // Set new timeout for 10 minutes (600000ms)
+    // Set new timeout for 15 minutes (900000ms)
     scammerNoReplyTimeout = setTimeout(() => {
         if (!activeChannelId || channelId !== activeChannelId) {
             return;
@@ -111,7 +111,7 @@ function startScammerNoReplyTimeout(channelId: string) {
                 color: "#e78284"
             });
         }
-    }, 600000) as unknown as NodeJS.Timeout; // 10 minutes
+    }, 900000) as unknown as NodeJS.Timeout; // 15 minutes
 }
 
 // Helper function to reset the inactivity timeout
@@ -147,12 +147,12 @@ function resetInactivityTimeout(channelId: string) {
 
             // If we're the last sender, send another message to keep conversation going
             if (lastMessage.author.id === currentUser.id) {
-                const message = generateRandomMessage();
-                sendMessage(channelId, { content: message });
-                // Check if last 5 messages are from us (scammer hasn't replied)
-                if (checkLastFiveMessages(channelId)) {
+                // Check if last 4 messages are from us (scammer hasn't replied)
+                if (checkLastXMessages(channelId)) {
                     startScammerNoReplyTimeout(channelId);
                 } else {
+                    const message = generateRandomMessage();
+                    sendMessage(channelId, { content: message });
                     // Reset the timeout after sending
                     resetInactivityTimeout(channelId);
                 }
@@ -229,8 +229,8 @@ function checkAndRespond(channelId: string) {
                 sendMessage(channelId, { content: message });
                 lastRespondedMessageId = currentLastMessage.id;
                 responseTimeout = null;
-                // Check if last 5 messages are from us (scammer hasn't replied)
-                if (checkLastFiveMessages(channelId)) {
+                // Check if last 4 messages are from us (scammer hasn't replied)
+                if (checkLastXMessages(channelId)) {
                     startScammerNoReplyTimeout(channelId);
                 } else {
                     // Reset inactivity timeout after sending our message
