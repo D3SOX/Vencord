@@ -18,6 +18,7 @@ let lastRespondedMessageId: string | null = null;
 let responseTimeout: NodeJS.Timeout | null = null;
 let lastMessageTimestamp: number | null = null;
 let inactivityTimeout: NodeJS.Timeout | null = null;
+let scammerNoReplyTimeout: NodeJS.Timeout | null = null;
 
 // Load questions from JSON file
 let complexProblems: string[] = [];
@@ -41,6 +42,60 @@ function generateRandomMessage(): string {
         return "No questions available. Please generate questions using generate_questions.py";
     }
     return complexProblems[Math.floor(Math.random() * complexProblems.length)];
+}
+
+// Helper function to check if the last 5 messages are from the current user
+function checkLastFiveMessages(channelId: string): boolean {
+    try {
+        const messages = MessageStore.getMessages(channelId);
+        if (!messages || !messages._array || messages._array.length < 5) {
+            return false;
+        }
+
+        const currentUser = UserStore.getCurrentUser();
+        if (!currentUser) {
+            return false;
+        }
+
+        // Get the last 5 messages
+        const lastFiveMessages = messages._array.slice(-5) as Message[];
+
+        // Check if all last 5 messages are from the current user
+        return lastFiveMessages.every(msg => msg.author.id === currentUser.id);
+    } catch (e) {
+        console.error("[AIKeepalive] Error checking last five messages:", e);
+        return false;
+    }
+}
+
+// Helper function to start the 10-minute timeout when scammer hasn't replied
+function startScammerNoReplyTimeout(channelId: string) {
+    // Clear existing timeout
+    if (scammerNoReplyTimeout) {
+        clearTimeout(scammerNoReplyTimeout);
+        scammerNoReplyTimeout = null;
+    }
+
+    // Set new timeout for 10 minutes (600000ms)
+    scammerNoReplyTimeout = setTimeout(() => {
+        if (!activeChannelId || channelId !== activeChannelId) {
+            return;
+        }
+
+        try {
+            // Send a keepalive message to restart the conversation
+            const message = generateRandomMessage();
+            sendMessage(channelId, { content: message });
+
+            // Reset the inactivity timeout to continue normal keepalive behavior
+            resetInactivityTimeout(channelId);
+
+            // Clear the timeout variable
+            scammerNoReplyTimeout = null;
+        } catch (e) {
+            console.error("[AIKeepalive] Error in scammer no-reply timeout:", e);
+        }
+    }, 600000) as unknown as NodeJS.Timeout; // 10 minutes
 }
 
 // Helper function to reset the inactivity timeout
@@ -78,8 +133,13 @@ function resetInactivityTimeout(channelId: string) {
             if (lastMessage.author.id === currentUser.id) {
                 const message = generateRandomMessage();
                 sendMessage(channelId, { content: message });
-                // Reset the timeout after sending
-                resetInactivityTimeout(channelId);
+                // Check if last 5 messages are from us (scammer hasn't replied)
+                if (checkLastFiveMessages(channelId)) {
+                    startScammerNoReplyTimeout(channelId);
+                } else {
+                    // Reset the timeout after sending
+                    resetInactivityTimeout(channelId);
+                }
             }
         } catch (e) {
             console.error("[AIKeepalive] Error in inactivity timeout:", e);
@@ -148,8 +208,13 @@ function checkAndRespond(channelId: string) {
                 sendMessage(channelId, { content: message });
                 lastRespondedMessageId = currentLastMessage.id;
                 responseTimeout = null;
-                // Reset inactivity timeout after sending our message
-                resetInactivityTimeout(channelId);
+                // Check if last 5 messages are from us (scammer hasn't replied)
+                if (checkLastFiveMessages(channelId)) {
+                    startScammerNoReplyTimeout(channelId);
+                } else {
+                    // Reset inactivity timeout after sending our message
+                    resetInactivityTimeout(channelId);
+                }
             }, 1500) as unknown as NodeJS.Timeout; // 1.5 second delay
         }
     } catch (e) {
@@ -189,6 +254,10 @@ export default definePlugin({
                     clearTimeout(inactivityTimeout);
                     inactivityTimeout = null;
                 }
+                if (scammerNoReplyTimeout) {
+                    clearTimeout(scammerNoReplyTimeout);
+                    scammerNoReplyTimeout = null;
+                }
 
                 // Store the channel ID and reset tracking
                 activeChannelId = ctx.channel.id;
@@ -218,6 +287,10 @@ export default definePlugin({
                         clearTimeout(inactivityTimeout);
                         inactivityTimeout = null;
                     }
+                    if (scammerNoReplyTimeout) {
+                        clearTimeout(scammerNoReplyTimeout);
+                        scammerNoReplyTimeout = null;
+                    }
                     activeChannelId = null;
                     lastRespondedMessageId = null;
                     lastMessageTimestamp = null;
@@ -242,6 +315,10 @@ export default definePlugin({
         if (inactivityTimeout) {
             clearTimeout(inactivityTimeout);
             inactivityTimeout = null;
+        }
+        if (scammerNoReplyTimeout) {
+            clearTimeout(scammerNoReplyTimeout);
+            scammerNoReplyTimeout = null;
         }
         activeChannelId = null;
         lastRespondedMessageId = null;
