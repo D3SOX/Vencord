@@ -5,6 +5,7 @@
  */
 
 import { ApplicationCommandInputType, sendBotMessage } from "@api/Commands";
+import { showNotification } from "@api/Notifications";
 import { Devs } from "@utils/constants";
 import { sendMessage } from "@utils/discord";
 import definePlugin from "@utils/types";
@@ -34,6 +35,11 @@ try {
 } catch (e) {
     console.error("[AIKeepalive] Failed to parse questions.json:", e);
     console.warn("[AIKeepalive] Please generate questions using generate_questions.py");
+    showNotification({
+        title: "AIKeepalive Error",
+        body: "Failed to load questions.json. Please generate questions using generate_questions.py",
+        color: "#e78284"
+    });
 }
 
 // Helper function to generate random messages from complex problems
@@ -64,6 +70,11 @@ function checkLastFiveMessages(channelId: string): boolean {
         return lastFiveMessages.every(msg => msg.author.id === currentUser.id);
     } catch (e) {
         console.error("[AIKeepalive] Error checking last five messages:", e);
+        showNotification({
+            title: "AIKeepalive Error",
+            body: "Error checking message history",
+            color: "#e78284"
+        });
         return false;
     }
 }
@@ -94,6 +105,11 @@ function startScammerNoReplyTimeout(channelId: string) {
             scammerNoReplyTimeout = null;
         } catch (e) {
             console.error("[AIKeepalive] Error in scammer no-reply timeout:", e);
+            showNotification({
+                title: "AIKeepalive Error",
+                body: "Error in keepalive timeout",
+                color: "#e78284"
+            });
         }
     }, 600000) as unknown as NodeJS.Timeout; // 10 minutes
 }
@@ -143,6 +159,11 @@ function resetInactivityTimeout(channelId: string) {
             }
         } catch (e) {
             console.error("[AIKeepalive] Error in inactivity timeout:", e);
+            showNotification({
+                title: "AIKeepalive Error",
+                body: "Error in inactivity timeout",
+                color: "#e78284"
+            });
         }
     }, 360000) as unknown as NodeJS.Timeout; // 6 minutes
 }
@@ -219,6 +240,11 @@ function checkAndRespond(channelId: string) {
         }
     } catch (e) {
         console.error("[AIKeepalive] Error checking and responding:", e);
+        showNotification({
+            title: "AIKeepalive Error",
+            body: "Error checking and responding to messages",
+            color: "#e78284"
+        });
     }
 }
 
