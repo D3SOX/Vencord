@@ -16,6 +16,8 @@ import questionsJsonText from "file://questions.json";
 let activeChannelId: string | null = null;
 let lastRespondedMessageId: string | null = null;
 let responseTimeout: NodeJS.Timeout | null = null;
+let lastMessageTimestamp: number | null = null;
+let inactivityTimeout: NodeJS.Timeout | null = null;
 
 // Load questions from JSON file
 let complexProblems: string[] = [];
@@ -39,6 +41,50 @@ function generateRandomMessage(): string {
         return "No questions available. Please generate questions using generate_questions.py";
     }
     return complexProblems[Math.floor(Math.random() * complexProblems.length)];
+}
+
+// Helper function to reset the inactivity timeout
+function resetInactivityTimeout(channelId: string) {
+    // Clear existing timeout
+    if (inactivityTimeout) {
+        clearTimeout(inactivityTimeout);
+        inactivityTimeout = null;
+    }
+
+    // Set new timeout for 2.5 minutes (150000ms)
+    inactivityTimeout = setTimeout(() => {
+        if (!activeChannelId || channelId !== activeChannelId) {
+            return;
+        }
+
+        // Check if we're still the last sender
+        try {
+            const messages = MessageStore.getMessages(channelId);
+            if (!messages || !messages._array || messages._array.length === 0) {
+                return;
+            }
+
+            const lastMessage = messages._array[messages._array.length - 1] as Message;
+            if (!lastMessage) {
+                return;
+            }
+
+            const currentUser = UserStore.getCurrentUser();
+            if (!currentUser) {
+                return;
+            }
+
+            // If we're the last sender, send another message to keep conversation going
+            if (lastMessage.author.id === currentUser.id) {
+                const message = generateRandomMessage();
+                sendMessage(channelId, { content: message });
+                // Reset the timeout after sending
+                resetInactivityTimeout(channelId);
+            }
+        } catch (e) {
+            console.error("[AIKeepalive] Error in inactivity timeout:", e);
+        }
+    }, 150000) as unknown as NodeJS.Timeout; // 2.5 minutes
 }
 
 // Helper function to check if we should respond and send a message
@@ -70,6 +116,10 @@ function checkAndRespond(channelId: string) {
 
         // Only respond if the last message is from someone else
         if (lastMessage.author.id !== currentUser.id) {
+            // Update timestamp and reset inactivity timeout when we receive a message from someone else
+            lastMessageTimestamp = Date.now();
+            resetInactivityTimeout(channelId);
+
             // Clear any existing timeout
             if (responseTimeout) {
                 clearTimeout(responseTimeout);
@@ -98,6 +148,8 @@ function checkAndRespond(channelId: string) {
                 sendMessage(channelId, { content: message });
                 lastRespondedMessageId = currentLastMessage.id;
                 responseTimeout = null;
+                // Reset inactivity timeout after sending our message
+                resetInactivityTimeout(channelId);
             }, 1500) as unknown as NodeJS.Timeout; // 1.5 second delay
         }
     } catch (e) {
@@ -128,15 +180,23 @@ export default definePlugin({
             description: "Start sending random messages to keep chat active",
             inputType: ApplicationCommandInputType.BUILT_IN,
             execute: (args, ctx) => {
-                // Clear any existing timeout if one is running
+                // Clear any existing timeouts if one is running
                 if (responseTimeout) {
                     clearTimeout(responseTimeout);
                     responseTimeout = null;
+                }
+                if (inactivityTimeout) {
+                    clearTimeout(inactivityTimeout);
+                    inactivityTimeout = null;
                 }
 
                 // Store the channel ID and reset tracking
                 activeChannelId = ctx.channel.id;
                 lastRespondedMessageId = null;
+                lastMessageTimestamp = null;
+
+                // Initialize inactivity timeout
+                resetInactivityTimeout(ctx.channel.id);
 
                 // Send confirmation message
                 sendBotMessage(ctx.channel.id, {
@@ -154,8 +214,13 @@ export default definePlugin({
                         clearTimeout(responseTimeout);
                         responseTimeout = null;
                     }
+                    if (inactivityTimeout) {
+                        clearTimeout(inactivityTimeout);
+                        inactivityTimeout = null;
+                    }
                     activeChannelId = null;
                     lastRespondedMessageId = null;
+                    lastMessageTimestamp = null;
 
                     sendBotMessage(ctx.channel.id, {
                         content: "AI keepalive stopped!",
@@ -174,7 +239,12 @@ export default definePlugin({
             clearTimeout(responseTimeout);
             responseTimeout = null;
         }
+        if (inactivityTimeout) {
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = null;
+        }
         activeChannelId = null;
         lastRespondedMessageId = null;
+        lastMessageTimestamp = null;
     },
 });
