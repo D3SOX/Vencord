@@ -116,7 +116,7 @@ export default definePlugin({
         {
             find: "\"--:--\"",
             replacement: {
-                match: /\(0,\i\.jsxs?\)\(.{0,50}\.playbackRateContainer.+?}\)}\)(?<=playbackCacheKey:\i\}=\i,(\i).+?)/,
+                match: /\(0,\i\.jsxs?\)\(.{0,50}\.\i,onClick:\(\).+?\}\)\}\)(?<=playbackCacheKey:\i\}=\i,(\i).+?)/,
                 replace: "$self.renderPlaybackSpeedComponent({mediaRef:$1})"
             }
         },
@@ -132,7 +132,7 @@ export default definePlugin({
         {
             find: "AUDIO:\"AUDIO\"",
             replacement: {
-                match: /\i.volumeSliderWrapper\}\)\}\),/,
+                match: /sliderWrapperClassName:\i.\i\}\)\}\),/,
                 replace: "$&$self.renderPlaybackSpeedComponent({mediaRef:this?.props?.mediaRef}),"
             }
         }
