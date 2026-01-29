@@ -10,7 +10,7 @@ import { definePluginSettings, Settings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import type { Channel, User } from "@vencord/discord-types";
-import { findByPropsLazy, findStoreLazy } from "@webpack";
+import { filters, findStoreLazy, mapMangledModuleLazy } from "@webpack";
 import { Menu, PresenceStore, React, SelectedChannelStore, Tooltip, UserStore } from "@webpack/common";
 import { CSSProperties } from "react";
 
@@ -68,7 +68,9 @@ function shouldBeNative() {
 
 const SessionsStore = findStoreLazy("SessionsStore");
 
-const StatusUtils = findByPropsLazy("useStatusFillColor", "StatusTypes");
+const StatusUtils = mapMangledModuleLazy(".concat(.5625*", {
+    useStatusFillColor: filters.byCode(".hex")
+});
 
 function Icon(path: string, opts?: { viewBox?: string; width?: number; height?: number; }) {
     return ({ color, tooltip, small }: { color: string; tooltip: string; small: boolean; }) => (
@@ -86,6 +88,36 @@ function Icon(path: string, opts?: { viewBox?: string; width?: number; height?: 
             )}
         </Tooltip>
     );
+}
+
+interface Sessions {
+    [key: string]: {
+        active: boolean,
+        activities: {
+            created_at: string,
+            id: string,
+            name: string,
+            session_id: string,
+            state: string,
+            type: number,
+        }[],
+        clientInfo: {
+            client: string,
+            os: string,
+            version: number,
+        },
+        hiddenActivities: {
+            created_at: string,
+            id: string,
+            name: string,
+            session_id: string,
+            state: string,
+            type: number,
+        }[],
+        lastModified?: unknown,
+        sessionId: string,
+        status: string;
+    };
 }
 
 const Icons = {
@@ -115,9 +147,9 @@ const PlatformIndicator = ({ user, wantMargin = true, wantTopMargin = false, sma
     if (!user || user.bot) return null;
 
     if (user.id === UserStore.getCurrentUser().id) {
-        const sessions = SessionsStore.getSessions();
+        const sessions = SessionsStore.getSessions() as Sessions;
         if (typeof sessions !== "object") return null;
-        const sortedSessions = Object.values(sessions).sort(({ status: a }: any, { status: b }: any) => {
+        const sortedSessions = Object.values(sessions).sort(({ status: a }, { status: b }) => {
             if (a === b) return 0;
             if (a === "online") return 1;
             if (b === "online") return -1;
@@ -126,7 +158,7 @@ const PlatformIndicator = ({ user, wantMargin = true, wantTopMargin = false, sma
             return 0;
         });
 
-        const ownStatus = Object.values(sortedSessions).reduce((acc: any, curr: any) => {
+        const ownStatus = Object.values(sortedSessions).reduce((acc, curr) => {
             if (curr.clientInfo.client !== "unknown")
                 acc[curr.clientInfo.client] = curr.status;
             return acc;
